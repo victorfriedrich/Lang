@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Play, Search, Flame } from 'lucide-react';
+import { FlashcardSession } from '../session/FlashcardSession';
+import { ModeSelection } from '../session/ModeSelection';
 
 // Updated mock data structure
 const mockData = {
@@ -97,6 +99,9 @@ const StreakCounter = ({ currentStreak, highestStreak }: { currentStreak: number
 
 const VocabularyLearnerWithStreak = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSession, setShowSession] = useState(false);
+  const [sessionMode, setSessionMode] = useState<'flashcard' | 'writing'>('flashcard');
+  const [frontSide, setFrontSide] = useState<'spanish' | 'english'>('spanish');
 
   const wordsDueToday = useMemo(() => getWordsDueToday(mockData.words), []);
 
@@ -120,6 +125,38 @@ const VocabularyLearnerWithStreak = () => {
   // Use current date as the reference date
   const referenceDate = new Date();
 
+  const handleStartReview = useCallback(() => {
+    console.log('Starting review...');
+    setShowSession(true);
+  }, []);
+
+  const handleSelectMode = useCallback((mode: 'flashcard' | 'writing', side: 'spanish' | 'english') => {
+    setSessionMode(mode);
+    setFrontSide(side);
+  }, []);
+
+  const handleExitSession = useCallback(() => {
+    setShowSession(false);
+  }, []);
+
+  console.log('showSession:', showSession);
+
+  if (showSession) {
+    console.log('Rendering FlashcardSession');
+    return (
+      <FlashcardSession
+        mode={sessionMode}
+        frontSide={frontSide}
+        onExit={handleExitSession}
+        learningSet={wordsDueToday.map((word, index) => ({
+          id: index + 1,
+          word: word.word,
+          translation: word.translation
+        }))}
+      />
+    );
+  }
+
   return (
     <div className="w-full bg-white shadow-lg overflow-hidden">
       <div className="bg-blue-600 text-white w-full">
@@ -135,7 +172,10 @@ const VocabularyLearnerWithStreak = () => {
             <p className="text-2xl font-bold text-gray-800">{wordsDueToday.length}</p>
             <p className="text-sm text-gray-600">words to review</p>
           </div>
-          <button className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded flex items-center">
+          <button 
+            className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded flex items-center"
+            onClick={handleStartReview}
+          >
             Start Review
             <Play className="ml-2 h-4 w-4" />
           </button>
