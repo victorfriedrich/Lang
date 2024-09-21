@@ -12,6 +12,7 @@ interface FlashCardInteractionProps {
     onNext: () => void;
     children: React.ReactNode;
     showNextCard: boolean;
+    isNextCard: boolean;
 }
 
 export const FlashCardInteraction: React.FC<FlashCardInteractionProps> = ({
@@ -23,6 +24,7 @@ export const FlashCardInteraction: React.FC<FlashCardInteractionProps> = ({
     onNext,
     children,
     showNextCard,
+    isNextCard,
 }) => {
     console.log('FlashCardInteraction rendered, isDesktop:', isDesktop);
     const x = useMotionValue(0);
@@ -37,10 +39,10 @@ export const FlashCardInteraction: React.FC<FlashCardInteractionProps> = ({
         if (!isDesktop) {
             if (info.offset.x > 100) {
                 onSwipe('correct', isFlipped);
-                animate(x, 50, { type: "spring", duration: 0.2, onComplete: () => x.set(0) });
+                x.set(window.innerWidth);
             } else if (info.offset.x < -100) {
                 onSwipe('incorrect', isFlipped);
-                animate(x, -50, { type: "spring", duration: 0.2, onComplete: () => x.set(0) });
+                x.set(-window.innerWidth);
             } else {
                 animate(x, 0, { type: "spring", duration: 0.2 });
             }
@@ -48,13 +50,19 @@ export const FlashCardInteraction: React.FC<FlashCardInteractionProps> = ({
     };
 
     const handleButtonClick = (direction: 'left' | 'right') => {
-        const targetX = direction === 'left' ? -50 : 50;
+        const targetX = direction === 'left' ? -30 : 30;
+        const targetOpacity = 0.2;
+        
         onSwipe(direction === 'left' ? 'incorrect' : 'correct', isFlipped);
+        
         animate(x, targetX, {
-            type: "spring",
-            duration: 0.2,
-            onComplete: () => x.set(0)
+            type: "ease",
+            duration: 0.4,
         });
+        
+        setTimeout(() => {
+            animate(x, 0, { duration: 0.2 });
+        }, 300);
     };
 
     return (
@@ -66,19 +74,13 @@ export const FlashCardInteraction: React.FC<FlashCardInteractionProps> = ({
                 onDragEnd={handleDragEnd}
                 className="relative w-full h-full cursor-grab active:cursor-grabbing"
                 whileTap={{ cursor: isDesktop ? 'default' : 'grabbing' }}
-                whileDrag={{ scale: isDesktop ? 1 : 1.05 }}
                 onClick={onFlip}
-                animate={{ 
-                    x: 0,
-                    y: showNextCard ? -16 : 0,
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
                 {React.Children.map(children, child =>
                     React.cloneElement(child as React.ReactElement, { borderColor, showNextCard })
                 )}
             </motion.div>
-            {isDesktop && !waitForNextButton && (
+            {isDesktop && !waitForNextButton && !isNextCard && (
                 <div className="mt-4 flex justify-between items-center w-full">
                     <Button onClick={() => handleButtonClick('left')} variant="outline" className="w-[35%]">
                         Don't Know
@@ -89,7 +91,7 @@ export const FlashCardInteraction: React.FC<FlashCardInteractionProps> = ({
                     </Button>
                 </div>
             )}
-            {waitForNextButton && (
+            {waitForNextButton && !isNextCard && (
                 <div className="mt-4 flex justify-center items-center w-full">
                     <Button onClick={onNext} className="w-full">
                         Next <ArrowRight className="ml-2 h-4 w-4" />

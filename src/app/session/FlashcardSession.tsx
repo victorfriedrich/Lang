@@ -4,8 +4,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { XCircle, ArrowRight, ThumbsUp, X } from 'lucide-react';
-import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import { XCircle, ArrowRight, ThumbsUp, X, CheckCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FlashCard } from './Flashcard';
 import { WritingTest } from './WritingTest';
 import { SessionSummary } from './SessionOverview';
@@ -45,13 +45,25 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
   const [showNextCard, setShowNextCard] = useState(false);
 
   const currentCard = learningSet[currentCardIndex];
+  const nextCard = learningSet[currentCardIndex + 1];
+
+  const handleNext = useCallback(() => {
+    setIsFlipped(false);
+    setInputValue('');
+    setFeedback(null);
+    setWaitForNextButton(false);
+    if (currentCardIndex + 1 < learningSet.length) {
+      setCurrentCardIndex(prev => prev + 1);
+    } else {
+      setShowSummary(true);
+    }
+  }, [currentCardIndex, learningSet.length]);
 
   const handleAnswer = useCallback((result: 'correct' | 'incorrect', wasFlipped = false) => {
     if (result === 'correct') {
       setCorrectCards(prev => [...prev, currentCard]);
       setWordList(prev => [...prev, { word: currentCard.word, translation: currentCard.translation, correct: true }]);
       setShowCorrectAnimation(true);
-      // Trigger next card animation
       setShowNextCard(true);
       setTimeout(() => {
         setShowCorrectAnimation(false);
@@ -68,19 +80,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
         handleNext();
       }
     }
-  }, [currentCard]);
-
-  const handleNext = useCallback(() => {
-    setIsFlipped(false);
-    setInputValue('');
-    setFeedback(null);
-    setWaitForNextButton(false);
-    if (currentCardIndex + 1 < learningSet.length) {
-      setCurrentCardIndex(prev => prev + 1);
-    } else {
-      setShowSummary(true);
-    }
-  }, [currentCardIndex, learningSet.length]);
+  }, [currentCard, handleNext]);
 
   const handleSubmit = useCallback(() => {
     const isCorrect = inputValue.toLowerCase().trim() === (frontSide === 'spanish' ? currentCard.translation : currentCard.word).toLowerCase();
@@ -107,6 +107,20 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
     setShowSummary(false);
   }, [incorrectCards]);
 
+  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    if (event.code === 'Space') {
+      handleFlip();
+    } else if (event.code === 'ArrowRight') {
+      if (waitForNextButton) {
+        handleNext();
+      } else {
+        handleAnswer('correct', isFlipped);
+      }
+    } else if (event.code === 'ArrowLeft') {
+      handleAnswer('incorrect', isFlipped);
+    }
+  }, [handleFlip, handleAnswer, handleNext, isFlipped, waitForNextButton]);
+
   useEffect(() => {
     setCurrentCardIndex(0);
     setIsFlipped(false);
@@ -118,6 +132,13 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
     setIncorrectCards([]);
     setShowSummary(false);
   }, [mode, frontSide]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [handleKeyPress]);
 
   if (showSummary) {
     return (
@@ -156,45 +177,48 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
 
       <div className="flex-grow flex flex-col items-center justify-center p-4">
         <div className="relative w-full max-w-md">
-          {mode === 'flashcard' ? (
-            <FlashCard
-              card={currentCard}
-              isFlipped={isFlipped}
-              frontSide={frontSide}
-              feedback={feedback}
-              onFlip={handleFlip}
-              onSwipe={handleSwipe}
-              waitForNextButton={waitForNextButton}
-              onNext={handleNext}
-              showNextCard={showNextCard}
-            />
-          ) : (
-            <WritingTest
-              card={currentCard}
-              frontSide={frontSide}
-              inputValue={inputValue}
-              onInputChange={handleInputChange}
-              onSubmit={handleSubmit}
-              feedback={feedback}
-            />
-          )}
-
           <AnimatePresence>
             {showCorrectAnimation && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.5, x: '50%', y: '0%' }}
-                animate={{ opacity: 1, scale: 1, x: '50%', y: '-100%' }}
-                exit={{ opacity: 0, scale: 0.5, x: '50%', y: '-150%' }}
-                transition={{ duration: 0.5 }}
-                className="absolute top-0 right-0 text-green-500"
+                initial={{ opacity: 0, scale: 0.8, y: 0}}
+                animate={{ opacity: 1, scale: 1, y: -10}}
+                exit={{ opacity: 0, scale: 0.5, y: -6 }}
+                transition={{ duration: 0.35 }}
+                className="absolute top-0 right-0 text-green-500 z-10"
               >
-                <ThumbsUp className="h-12 w-12" aria-hidden="true" />
+                <CheckCircle className="h-8 w-8 mr-5 mt-5" aria-hidden="true" />
               </motion.div>
             )}
           </AnimatePresence>
+          {nextCard && (
+            <div className="absolute top-0 left-0 right-0">
+              <FlashCard
+                card={nextCard}
+                isFlipped={false}
+                frontSide={frontSide}
+                feedback={null}
+                onFlip={() => {}}
+                onSwipe={() => {}}
+                waitForNextButton={false}
+                onNext={() => {}}
+                showNextCard={false}
+                isNextCard={true}
+              />
+            </div>
+          )}
+          <FlashCard
+            card={currentCard}
+            isFlipped={isFlipped}
+            frontSide={frontSide}
+            feedback={feedback}
+            onFlip={handleFlip}
+            onSwipe={handleSwipe}
+            waitForNextButton={waitForNextButton}
+            onNext={handleNext}
+            showNextCard={showNextCard}
+            isNextCard={false}
+          />
         </div>
-
-        {/* Remove the Next button from here */}
       </div>
     </div>
   );
