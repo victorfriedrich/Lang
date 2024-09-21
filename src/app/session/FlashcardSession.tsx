@@ -1,0 +1,201 @@
+'use client';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { XCircle, ArrowRight, ThumbsUp, X } from 'lucide-react';
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import { FlashCard } from './Flashcard';
+import { WritingTest } from './WritingTest';
+import { SessionSummary } from './SessionOverview';
+
+const initialLearningSet = [
+  { id: 1, word: 'hola', translation: 'hello' },
+  { id: 2, word: 'adiós', translation: 'goodbye' },
+  { id: 3, word: 'gracias', translation: 'thank you' },
+  { id: 4, word: 'por favor', translation: 'please' },
+  { id: 5, word: 'buenos días', translation: 'good morning' },
+];
+
+interface FlashcardSessionProps {
+  mode: 'flashcard' | 'writing';
+  frontSide: 'spanish' | 'english';
+  onExit: () => void;
+}
+
+interface WordItem {
+  word: string;
+  translation: string;
+  correct: boolean;
+}
+
+export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontSide, onExit }) => {
+  const [learningSet, setLearningSet] = useState(initialLearningSet);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
+  const [showCorrectAnimation, setShowCorrectAnimation] = useState(false);
+  const [waitForNextButton, setWaitForNextButton] = useState(false);
+  const [correctCards, setCorrectCards] = useState<typeof initialLearningSet>([]);
+  const [incorrectCards, setIncorrectCards] = useState<typeof initialLearningSet>([]);
+  const [showSummary, setShowSummary] = useState(false);
+  const [wordList, setWordList] = useState<WordItem[]>([]);
+  const [showNextCard, setShowNextCard] = useState(false);
+
+  const currentCard = learningSet[currentCardIndex];
+
+  const handleAnswer = useCallback((result: 'correct' | 'incorrect', wasFlipped = false) => {
+    if (result === 'correct') {
+      setCorrectCards(prev => [...prev, currentCard]);
+      setWordList(prev => [...prev, { word: currentCard.word, translation: currentCard.translation, correct: true }]);
+      setShowCorrectAnimation(true);
+      // Trigger next card animation
+      setShowNextCard(true);
+      setTimeout(() => {
+        setShowCorrectAnimation(false);
+        setShowNextCard(false);
+        handleNext();
+      }, 500);
+    } else {
+      setIncorrectCards(prev => [...prev, currentCard]);
+      setWordList(prev => [...prev, { word: currentCard.word, translation: currentCard.translation, correct: false }]);
+      setFeedback('incorrect');
+      if (!wasFlipped) {
+        setWaitForNextButton(true);
+      } else {
+        handleNext();
+      }
+    }
+  }, [currentCard]);
+
+  const handleNext = useCallback(() => {
+    setIsFlipped(false);
+    setInputValue('');
+    setFeedback(null);
+    setWaitForNextButton(false);
+    if (currentCardIndex + 1 < learningSet.length) {
+      setCurrentCardIndex(prev => prev + 1);
+    } else {
+      setShowSummary(true);
+    }
+  }, [currentCardIndex, learningSet.length]);
+
+  const handleSubmit = useCallback(() => {
+    const isCorrect = inputValue.toLowerCase().trim() === (frontSide === 'spanish' ? currentCard.translation : currentCard.word).toLowerCase();
+    handleAnswer(isCorrect ? 'correct' : 'incorrect');
+  }, [inputValue, frontSide, currentCard, handleAnswer]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value), []);
+
+  const handleFlip = useCallback(() => {
+    if (!feedback && !showCorrectAnimation) {
+      setIsFlipped(!isFlipped);
+    }
+  }, [feedback, showCorrectAnimation, isFlipped]);
+
+  const handleSwipe = useCallback((result: 'correct' | 'incorrect', wasFlipped: boolean) => {
+    handleAnswer(result, wasFlipped);
+  }, [handleAnswer]);
+
+  const handleRestart = useCallback(() => {
+    setLearningSet(incorrectCards);
+    setCurrentCardIndex(0);
+    setCorrectCards([]);
+    setIncorrectCards([]);
+    setShowSummary(false);
+  }, [incorrectCards]);
+
+  useEffect(() => {
+    setCurrentCardIndex(0);
+    setIsFlipped(false);
+    setInputValue('');
+    setFeedback(null);
+    setShowCorrectAnimation(false);
+    setWaitForNextButton(false);
+    setCorrectCards([]);
+    setIncorrectCards([]);
+    setShowSummary(false);
+  }, [mode, frontSide]);
+
+  if (showSummary) {
+    return (
+      <SessionSummary
+        correctCount={correctCards.length}
+        incorrectCount={incorrectCards.length}
+        wordList={wordList}
+        onRestart={handleRestart}
+        onExit={onExit}
+      />
+    );
+  }
+
+  const totalWords = learningSet.length;
+  const completedWords = currentCardIndex;
+  const percentageComplete = Math.round((completedWords / totalWords) * 100);
+
+  return (
+    <div className="flex flex-col h-screen bg-white">
+      <div className="border-b">
+        <div className="flex justify-between items-center p-4">
+          <button className="text-gray-500" onClick={onExit}>
+            <X className="h-6 w-6" />
+          </button>
+          <div className="text-right">
+            <h2 className="text-xl font-bold text-gray-800">{completedWords} / {totalWords}</h2>
+          </div>
+        </div>
+        <div className="w-full h-1 bg-gray-200">
+          <div 
+            className="h-full bg-blue-600"
+            style={{ width: `${percentageComplete}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="flex-grow flex flex-col items-center justify-center p-4">
+        <div className="relative w-full max-w-md">
+          {mode === 'flashcard' ? (
+            <FlashCard
+              card={currentCard}
+              isFlipped={isFlipped}
+              frontSide={frontSide}
+              feedback={feedback}
+              onFlip={handleFlip}
+              onSwipe={handleSwipe}
+              waitForNextButton={waitForNextButton}
+              onNext={handleNext}
+              showNextCard={showNextCard}
+            />
+          ) : (
+            <WritingTest
+              card={currentCard}
+              frontSide={frontSide}
+              inputValue={inputValue}
+              onInputChange={handleInputChange}
+              onSubmit={handleSubmit}
+              feedback={feedback}
+            />
+          )}
+
+          <AnimatePresence>
+            {showCorrectAnimation && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, x: '50%', y: '0%' }}
+                animate={{ opacity: 1, scale: 1, x: '50%', y: '-100%' }}
+                exit={{ opacity: 0, scale: 0.5, x: '50%', y: '-150%' }}
+                transition={{ duration: 0.5 }}
+                className="absolute top-0 right-0 text-green-500"
+              >
+                <ThumbsUp className="h-12 w-12" aria-hidden="true" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Remove the Next button from here */}
+      </div>
+    </div>
+  );
+};

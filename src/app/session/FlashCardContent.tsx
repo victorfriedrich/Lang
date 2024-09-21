@@ -1,0 +1,81 @@
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+interface FlashCardContentProps {
+  card: { word: string; translation: string };
+  isFlipped: boolean;
+  frontSide: 'spanish' | 'english';
+  feedback: 'correct' | 'incorrect' | null;
+  borderColor: any;
+  showNextCard: boolean;
+}
+
+export const FlashCardContent: React.FC<FlashCardContentProps> = ({
+  card,
+  isFlipped,
+  frontSide,
+  feedback,
+  borderColor,
+  showNextCard,
+}) => (
+  <motion.div
+    className="absolute inset-0 w-full h-full"
+    animate={{ 
+      rotateX: isFlipped ? 180 : 0,
+      y: showNextCard ? -16 : 0,
+    }}
+    transition={{ duration: 0.4 }}
+    style={{ transformStyle: 'preserve-3d' }}
+  >
+    <Card className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)]">
+      <motion.div
+        className="absolute inset-0 rounded-lg"
+        style={{ borderWidth: 4, borderStyle: 'solid', borderColor }}
+      />
+      {/* Front of the card */}
+      <CardContent className="relative w-full h-full flex items-center justify-center overflow-hidden">
+        <motion.div
+          className="absolute inset-0 flex flex-col items-center justify-center"
+          animate={{ opacity: isFlipped ? 0 : 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="h-20 flex items-center justify-center">
+            <h2 className="text-3xl font-bold text-gray-800">
+              {frontSide === 'spanish' ? card.word : card.translation}
+            </h2>
+          </div>
+          {feedback === 'incorrect' && (
+            <div className="text-red-500 mt-4 flex items-center">
+              <XCircle className="h-4 w-4 mr-2" aria-hidden="true" />
+              <p>Correct answer: {frontSide === 'spanish' ? card.translation : card.word}</p>
+            </div>
+          )}
+          {/* Remove the Next button from here */}
+        </motion.div>
+      </CardContent>
+    </Card>
+    {/* Back of the card */}
+    <Card className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] [backface-visibility:hidden] [transform:rotateX(180deg)]">
+      <motion.div
+        className="absolute inset-0 rounded-lg"
+        style={{ borderWidth: 4, borderStyle: 'solid', borderColor }}
+      />
+      <CardContent className="relative w-full h-full flex items-center justify-center overflow-hidden">
+        <motion.div
+          className="absolute inset-0 flex flex-col items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isFlipped ? 1 : 0 }}
+          transition={{ duration: 0.2, delay: 0.2 }}
+        >
+          <div className="h-20 flex items-center justify-center">
+            <h2 className="text-3xl font-bold text-gray-800">
+              {frontSide === 'spanish' ? card.translation : card.word}
+            </h2>
+          </div>
+        </motion.div>
+      </CardContent>
+    </Card>
+  </motion.div>
+);
