@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Link from 'next/link';
 import "./globals.css";
+import { ChevronRight } from 'lucide-react';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,40 +25,42 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const navItems = [
+    { href: '/', name: 'Home' },
+    { href: '/articles', name: 'Articles' },
+    { href: '/parse', name: 'Parse URL' },
+    { href: '/proficiency', name: 'Proficiency' },
+    { href: '/ranking', name: 'Ranking' },
+    { href: '/vocabulary', name: 'Vocabulary' },
+    { href: '/session', name: 'Session' },
+  ];
+
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100`}>
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex space-x-4">
-                <Link href="/" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                  Home
-                </Link>
-                <Link href="/articles" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                  Articles
-                </Link>
-                <Link href="/parse" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                  Parse URL
-                </Link>
-                <Link href="/proficiency" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                  Proficiency
-                </Link>
-                <Link href="/ranking" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                  Ranking
-                </Link>
-                <Link href="/vocabulary" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                  Vocabulary
-                </Link>
-                <Link href="/session" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                  Session
-                </Link>
-              </div>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100 flex`}>
+        <div className="bg-gray-100 border-r border-gray-200 overflow-y-auto w-64">
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Navigation</h2>
+            </div>
+            
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <div key={item.href} className="relative group">
+                  <Link
+                    href={item.href}
+                    className="w-full py-2 px-2 text-sm text-left font-medium relative z-10 transition duration-150 ease-in-out flex items-center rounded-md text-gray-800 hover:bg-gray-200"
+                  >
+                    <span className="ml-2 truncate">{item.name}</span>
+                    <ChevronRight className="h-5 w-5 ml-auto text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </Link>
+                </div>
+              ))}
             </div>
           </div>
-        </nav>
+        </div>
 
-        <main className="w-full">
+        <main className="flex-1">
           {children}
         </main>
       </body>

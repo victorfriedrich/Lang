@@ -10,7 +10,7 @@ interface ModeSelectionProps {
 }
 
 export const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
-  const [frontSide, setFrontSide] = useState('spanish');
+  const [frontSide, setFrontSide] = useState('english');
 
   return (
     <div className="flex flex-col items-start justify-start min-h-screen bg-white">

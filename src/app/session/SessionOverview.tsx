@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Check } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface WordItem {
   word: string;
@@ -24,6 +25,16 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
 }) => {
   const totalWords = correctCount + incorrectCount;
   const percentageCorrect = Math.round((correctCount / totalWords) * 100);
+
+  useEffect(() => {
+    if (incorrectCount === 0) {
+      confetti({
+        particleCount: 70,
+        spread: 85,
+        origin: { y: 0.6 }
+      });
+    }
+  }, [incorrectCount]);
 
   return (
     <div className="flex flex-col h-screen bg-white">

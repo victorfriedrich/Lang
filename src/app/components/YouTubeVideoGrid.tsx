@@ -1,22 +1,12 @@
+'use client';
 import React, { useState, useEffect } from 'react';
-import { Loader2, X, Bookmark } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import Wordpanel from '../components/Wordpanel';
 
 interface Video {
   id: string;
   percentUnderstood: number;
-}
-
-interface Word {
-  id: number;
-  root: string;
-  isBookmarked: boolean;
-}
-
-// Supabase response type
-interface WordData {
-  id: number;
-  root: string;
 }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,9 +22,7 @@ const YouTubeVideoGrid: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-  const [newWords, setNewWords] = useState<Word[]>([]);
-  const [isWordListLoading, setIsWordListLoading] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ id: string, title: string } | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -50,7 +38,7 @@ const YouTubeVideoGrid: React.FC = () => {
         }));
         setVideos(videosWithPercentages);
       } catch (err) {
-        setError('Failed to load recommendations. Please try again later.');
+        setError('Failed to load 2 recommendations. Please try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -59,55 +47,8 @@ const YouTubeVideoGrid: React.FC = () => {
     fetchVideos();
   }, []);
 
-  const fetchNewWords = async (videoId: string) => {
-    setIsWordListLoading(true);
-    try {
-      // First, get the IDs of CREA words
-      const { data: creaData, error: creaError } = await supabase
-        .from('words')
-        .select('id')
-        .eq('source', 'CREA')
-        .limit(300);
-
-      if (creaError) throw creaError;
-
-      const creaIds = creaData.map((item: { id: number }) => item.id);
-
-      // Then, fetch words for the video that are not in CREA
-      const { data, error } = await supabase
-        .from('words')
-        .select('id, root')
-        .not('id', 'in', `(${creaIds.join(',')})`)
-        .order('root', { ascending: true });
-
-      if (error) throw error;
-
-      const words: Word[] = (data as WordData[]).map((word: WordData) => ({
-        id: word.id,
-        root: word.root,
-        isBookmarked: false
-      }));
-
-      setNewWords(words);
-    } catch (err) {
-      console.error('Error fetching new words:', err);
-      setError('Failed to load new words. Please try again.');
-    } finally {
-      setIsWordListLoading(false);
-    }
-  };
-
-  const handleVideoClick = (videoId: string) => {
-    setSelectedVideo(videoId);
-    fetchNewWords(videoId);
-  };
-
-  const toggleBookmark = (wordId: number) => {
-    setNewWords(words =>
-      words.map(word =>
-        word.id === wordId ? { ...word, isBookmarked: !word.isBookmarked } : word
-      )
-    );
+  const handleVideoClick = (videoId: string, videoTitle: string) => {
+    setSelectedVideo({ id: videoId, title: videoTitle });
   };
 
   if (isLoading) {
@@ -139,7 +80,7 @@ const YouTubeVideoGrid: React.FC = () => {
             </div>
             <div 
               className="p-4 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => handleVideoClick(video.id)}
+              onClick={() => handleVideoClick(video.id, `New Words`)}
             >
               <div className="text-sm text-blue-600 font-medium">
                 {video.percentUnderstood}% understood
@@ -153,41 +94,13 @@ const YouTubeVideoGrid: React.FC = () => {
       </div>
 
       {/* Side panel for new words */}
-      <div 
-        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
-          selectedVideo ? 'translate-x-0' : 'translate-x-full'
-        } flex flex-col`}
-      >
-        <div className="p-4 border-b">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">New Words</h2>
-            <button onClick={() => setSelectedVideo(null)} className="text-gray-500 hover:text-gray-700">
-              <X size={24} />
-            </button>
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          {isWordListLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <Loader2 className="animate-spin h-6 w-6 text-blue-500" />
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {newWords.map((word) => (
-                <li key={word.id} className="flex items-center justify-between border-b pb-2">
-                  <span className="font-medium">{word.root}</span>
-                  <button 
-                    onClick={() => toggleBookmark(word.id)}
-                    className="text-gray-500 hover:text-blue-500 transition-colors duration-200"
-                  >
-                    <Bookmark size={20} fill={word.isBookmarked ? "currentColor" : "none"} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      {selectedVideo && (
+        <Wordpanel 
+          videoId={selectedVideo.id} 
+          videoTitle={selectedVideo.title} 
+          onClose={() => setSelectedVideo(null)} 
+        />
+      )}
     </div>
   );
 };

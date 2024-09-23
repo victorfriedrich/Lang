@@ -9,19 +9,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FlashCard } from './Flashcard';
 import { WritingTest } from './WritingTest';
 import { SessionSummary } from './SessionOverview';
-
-const initialLearningSet = [
-  { id: 1, word: 'hola', translation: 'hello' },
-  { id: 2, word: 'adiós', translation: 'goodbye' },
-  { id: 3, word: 'gracias', translation: 'thank you' },
-  { id: 4, word: 'por favor', translation: 'please' },
-  { id: 5, word: 'buenos días', translation: 'good morning' },
-];
-
+import { useUpdateSpacedRepetition } from '@/app/hooks/useUpdateSpacedRepetition';
+import { useUpdateFlashCardInfo } from '@/app/hooks/updateFlashCardInfo';
 interface FlashcardSessionProps {
   mode: 'flashcard' | 'writing';
   frontSide: 'spanish' | 'english';
   onExit: () => void;
+  learningSet: Array<{ id: number; word: string; translation: string }>;
 }
 
 interface WordItem {
@@ -30,19 +24,23 @@ interface WordItem {
   correct: boolean;
 }
 
-export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontSide, onExit }) => {
-  const [learningSet, setLearningSet] = useState(initialLearningSet);
+export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontSide, onExit, learningSet: initialLearningSet }) => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [showCorrectAnimation, setShowCorrectAnimation] = useState(false);
   const [waitForNextButton, setWaitForNextButton] = useState(false);
-  const [correctCards, setCorrectCards] = useState<typeof initialLearningSet>([]);
-  const [incorrectCards, setIncorrectCards] = useState<typeof initialLearningSet>([]);
+  const [correctCards, setCorrectCards] = useState<typeof learningSet>([]);
+  const [incorrectCards, setIncorrectCards] = useState<typeof learningSet>([]);
   const [showSummary, setShowSummary] = useState(false);
   const [wordList, setWordList] = useState<WordItem[]>([]);
   const [showNextCard, setShowNextCard] = useState(false);
+  const { updateSpacedRepetition } = useUpdateSpacedRepetition();
+  const { updateFlashCardInfo } = useUpdateFlashCardInfo();
+  const userId = '529cf561-a58a-4e90-9148-5e9b0f8c49e1';
+
+  const [learningSet, setLearningSet] = useState(initialLearningSet);
 
   const currentCard = learningSet[currentCardIndex];
   const nextCard = learningSet[currentCardIndex + 1];
@@ -65,6 +63,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
       setWordList(prev => [...prev, { word: currentCard.word, translation: currentCard.translation, correct: true }]);
       setShowCorrectAnimation(true);
       setShowNextCard(true);
+      updateFlashCardInfo({ userId, wordId: currentCard.id, testType: 'flashcard', testResult: true });
       setTimeout(() => {
         setShowCorrectAnimation(false);
         setShowNextCard(false);
@@ -74,13 +73,14 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
       setIncorrectCards(prev => [...prev, currentCard]);
       setWordList(prev => [...prev, { word: currentCard.word, translation: currentCard.translation, correct: false }]);
       setFeedback('incorrect');
+      updateFlashCardInfo({ userId, wordId: currentCard.id, testType: 'flashcard', testResult: false });
       if (!wasFlipped) {
         setWaitForNextButton(true);
       } else {
         handleNext();
       }
     }
-  }, [currentCard, handleNext]);
+  }, [currentCard, handleNext, updateSpacedRepetition, updateFlashCardInfo, userId]);
 
   const handleSubmit = useCallback(() => {
     const isCorrect = inputValue.toLowerCase().trim() === (frontSide === 'spanish' ? currentCard.translation : currentCard.word).toLowerCase();
@@ -104,6 +104,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
     setCurrentCardIndex(0);
     setCorrectCards([]);
     setIncorrectCards([]);
+    setWordList([]);
     setShowSummary(false);
   }, [incorrectCards]);
 
@@ -140,6 +141,10 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
     };
   }, [handleKeyPress]);
 
+  const handleFinishSession = useCallback(() => {
+    onExit(); // Call the onExit function passed from the parent
+  }, [onExit]);
+
   if (showSummary) {
     return (
       <SessionSummary
@@ -147,7 +152,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
         incorrectCount={incorrectCards.length}
         wordList={wordList}
         onRestart={handleRestart}
-        onExit={onExit}
+        onExit={handleFinishSession} // Use handleFinishSession here
       />
     );
   }
