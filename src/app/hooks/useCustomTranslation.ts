@@ -33,7 +33,6 @@ export const useCustomTranslation = () => {
     try {
       let { data, error } = await supabase.rpc('add_custom_translation', {
         _custom_translation: customTranslation, 
-        _user_id: userId, 
         _word_id: wordId
       });
       if (error) {

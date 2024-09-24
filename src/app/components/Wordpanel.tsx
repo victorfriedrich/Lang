@@ -44,8 +44,7 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
   
   const addToLearningSet = useCallback(async () => {
     try {
-      const userId = '529cf561-a58a-4e90-9148-5e9b0f8c49e1'; // TODO: Replace with actual user ID
-      await addWordsToUserwords(userId, selectedWords);
+      await addWordsToUserwords(selectedWords);
       onClose(selectedWords.length);
     } catch (error) {
       // Error handling could be improved here, e.g., showing an error message to the user

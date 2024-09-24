@@ -1,15 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import WordInfoPopup from '@/app/components/WordInfoPopup';
 import exampleArticle from '@/app/hooks/exampleArticle.json';
 import { useWordInfo } from '@/app/hooks/useWordInfo';
+import { useGetLearningWords } from '@/app/hooks/useGetLearningWords';
+
 const Page = () => {
   const [selectedWord, setSelectedWord] = useState<{ word: string, wordId: number } | null>(null);
   const [showPopup, setShowPopup] = useState(false);
 
-  const unknownWordIds = [1363, 4892, 4895]; // Mocked data for unknown words
-  const learningWordIds = [1422, 4571, 1059]; // Mocked data for learning words
+  const wordIds = useMemo(() => 
+    exampleArticle.filter(wordObj => wordObj.id !== undefined).map(wordObj => wordObj.id), 
+    [exampleArticle]
+  );
+
+  const { learningWords, isLoading, error } = useGetLearningWords(wordIds);
+
+  const unknownWordIds = learningWords.filter(word => word.status === 'unknown').map(word => word.word_id);
+  const learningWordIds = learningWords.filter(word => word.status === 'learning').map(word => word.word_id);
 
   const handleWordClick = (word: string, wordId: number) => {
     setSelectedWord({ word, wordId });
@@ -20,6 +29,14 @@ const Page = () => {
     setShowPopup(false);
     setSelectedWord(null);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="article-container bg-white p-8 space-y-2 text-gray-800">

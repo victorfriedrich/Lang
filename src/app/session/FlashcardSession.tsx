@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FlashCard } from './Flashcard';
 import { WritingTest } from './WritingTest';
 import { SessionSummary } from './SessionOverview';
-import { useUpdateSpacedRepetition } from '@/app/hooks/useUpdateSpacedRepetition';
 import { useUpdateFlashCardInfo } from '@/app/hooks/updateFlashCardInfo';
 interface FlashcardSessionProps {
   mode: 'flashcard' | 'writing';
@@ -36,7 +35,6 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
   const [showSummary, setShowSummary] = useState(false);
   const [wordList, setWordList] = useState<WordItem[]>([]);
   const [showNextCard, setShowNextCard] = useState(false);
-  const { updateSpacedRepetition } = useUpdateSpacedRepetition();
   const { updateFlashCardInfo } = useUpdateFlashCardInfo();
   const userId = '529cf561-a58a-4e90-9148-5e9b0f8c49e1';
 
@@ -80,7 +78,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
         handleNext();
       }
     }
-  }, [currentCard, handleNext, updateSpacedRepetition, updateFlashCardInfo, userId]);
+  }, [currentCard, handleNext, updateFlashCardInfo, userId]);
 
   const handleSubmit = useCallback(() => {
     const isCorrect = inputValue.toLowerCase().trim() === (frontSide === 'spanish' ? currentCard.translation : currentCard.word).toLowerCase();

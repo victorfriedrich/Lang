@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { useState, useEffect, useContext } from 'react';
+import { supabase } from '@/lib/supabaseclient';
+import { UserContext } from '../../context/UserContext';
 
 interface StreakData {
   revision_date: string;
   revision_count: number;
 }
 
-export const useStreakData = (userId: string) => {
+export const useStreakData = () => {
+  const { user } = useContext(UserContext);
   const [streakData, setStreakData] = useState<StreakData[]>([]);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [highestStreak, setHighestStreak] = useState(0);
@@ -14,25 +16,26 @@ export const useStreakData = (userId: string) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStreakData(userId);
-  }, [userId]);
+    if (user) {
+      fetchStreakData(user.id);
+    }
+  }, [user]);
 
   const fetchStreakData = async (userId: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase.rpc('get_streak_data', { _user_id: userId });
+      const { data, error } = await supabase.rpc('get_streak_data');
 
       if (error) throw error;
 
       const processedData = processStreakData(data);
 
-      console.log(processedData)
+      console.log(processedData);
       setStreakData(processedData);
       setCurrentStreak(calculateCurrentStreak(processedData));
-      setHighestStreak(10); // Mock value, replace with actual logic
+      setHighestStreak(10); // Replace with actual logic
     } catch (err) {
       console.error('Error fetching streak data:', err);
       setError('Failed to fetch streak data');
@@ -44,17 +47,6 @@ export const useStreakData = (userId: string) => {
   return { streakData, currentStreak, highestStreak, isLoading, error };
 };
 
-function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase URL or Anon Key is missing');
-  }
-
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
-}
-
 function processStreakData(data: StreakData[]): StreakData[] {
   const today = new Date().toISOString().split('T')[0];
   const lastDate = data[data.length - 1]?.revision_date;
@@ -65,6 +57,8 @@ function processStreakData(data: StreakData[]): StreakData[] {
 }
 
 function calculateCurrentStreak(data: StreakData[]): number {
+  if (data.length === 0) return 0;
+
   let streak = 0;
   const today = new Date().toISOString().split('T')[0];
 
@@ -75,7 +69,7 @@ function calculateCurrentStreak(data: StreakData[]): number {
 
     if (date.toISOString().split('T')[0] !== expectedDate.toISOString().split('T')[0]) break;
 
-    if (data[i].revision_count > 0 || i === data.length - 1) {
+    if (data[i].revision_count > 0) {
       streak++;
     } else {
       break;

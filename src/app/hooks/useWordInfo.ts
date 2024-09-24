@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/lib/supabaseclient';
 
 interface WordInfo {
   reviewcount: number;
@@ -14,19 +14,9 @@ export const useWordInfo = (userId: string, wordId: number) => {
 
   useEffect(() => {
     const fetchWordInfo = async () => {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      if (!supabaseUrl || !supabaseAnonKey) {
-        setError('Supabase configuration is missing');
-        setIsLoading(false);
-        return;
-      }
-
-      const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
-      
       try {
-        const { data, error } = await supabase.rpc('word_info', { _user_id: userId, _word_id: wordId });
+        const { data, error } = await supabase.rpc('get_user_counts_with_wordforms', { _word_id: wordId });
 
         if (error) {
           console.error('Supabase error:', error);

@@ -45,8 +45,8 @@ const WordInfoPopup: React.FC<WordInfoPopupProps> = ({
   const visibleForms = showAllForms ? (wordInfo?.alternative_wordforms || []) : (wordInfo?.alternative_wordforms || []).slice(0, 7);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-96 max-w-full relative">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl p-6 w-96 max-w-full relative" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4">
           <h2 className="text-xl font-bold text-gray-800 mb-2">{word}</h2>
           <div className="flex items-center justify-between">

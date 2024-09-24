@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseclient';
 
-interface OverdueWord {
+interface LearningWord {
   word_id: number;
-  word_root: string;
-  translation: string;
-  next_review_due_at: string;
+  status: 'learning' | 'unknown';
 }
 
-export const useOverdueWords = () => {
-  const [overdueWords, setOverdueWords] = useState<OverdueWord[]>([]);
+export const useGetLearningWords = (_word_ids: number[]) => {
+  const [learningWords, setLearningWords] = useState<LearningWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchOverdueWords = async () => {
+    const fetchLearningWords = async () => {
       try {
-        const { data, error } = await supabase.rpc('get_overdue_words');
+        const { data, error } = await supabase.rpc('get_learning_and_unknown_words', {
+          _word_ids
+        });
 
         if (error) {
           console.error('Supabase error:', error);
@@ -25,7 +25,7 @@ export const useOverdueWords = () => {
 
         console.log('Function result:', data);
 
-        setOverdueWords(data);
+        setLearningWords(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -33,8 +33,9 @@ export const useOverdueWords = () => {
       }
     };
 
-    fetchOverdueWords();
-  }, []);
+    fetchLearningWords();
+  }, [_word_ids]);
 
-  return { overdueWords, isLoading, error };
+  return { learningWords, isLoading, error };
 };
+

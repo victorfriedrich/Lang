@@ -1,4 +1,4 @@
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/lib/supabaseclient';
 
 interface FlashcardTestParams {
   userId: string;
@@ -14,18 +14,9 @@ export const useUpdateFlashCardInfo = () => {
     testType,
     testResult,
   }: FlashcardTestParams) => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Supabase URL or Anon Key is missing');
-    }
-
-    const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
     try {
       const { data, error } = await supabase.rpc('insert_flashcard_test', {
-        _user_id: userId,
         _word_id: wordId,
         _test_type: testType,
         _test_result: testResult,
@@ -35,13 +26,12 @@ export const useUpdateFlashCardInfo = () => {
         console.error('Error updating flashcard info:', error);
         throw error;
       } else {
-        console.log('Flashcard info updated successfully:', data);
+        console.log('Flashcard info updated successfully:', wordId);
       }
 
       // Update spaced repetition
       const { data: spacedRepData, error: spacedRepError } = await supabase.rpc('update_spaced_repetition', {
         _test_result: testResult,
-        _user_id: userId,
         _word_id: wordId
       });
 
