@@ -3,7 +3,7 @@ import React from 'react';
 import localFont from "next/font/local";
 import Link from 'next/link';
 import "./globals.css";
-import { ChevronRight, Home, BookOpen, Link as LinkIcon, BarChart2, Trophy, BookMarked } from 'lucide-react';
+import { ChevronRight, Home, BookOpen, Link as LinkIcon, BarChart2, Trophy, BookMarked, Film } from 'lucide-react';
 import { UserProvider } from '@/context/UserContext';
 import DemoAccountHeader from '@/app/components/DemoAccountHeader';
 
@@ -29,12 +29,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const navItems = [
-    { href: '/', name: 'Home', icon: Home },
     { href: '/articles', name: 'Articles', icon: BookOpen },
-    { href: '/parse', name: 'Parse URL', icon: LinkIcon },
-    { href: '/proficiency', name: 'Proficiency', icon: BarChart2 },
-    { href: '/ranking', name: 'Ranking', icon: Trophy },
+    { href: '/videos', name: 'Videos', icon: Film },
     { href: '/vocabulary', name: 'Vocabulary', icon: BookMarked },
+    { href: '/progress', name: 'Learning Progress', icon: BarChart2 },
+    { href: '/parse', name: 'Parse URL', icon: LinkIcon },
+    { href: '/proficiency', name: 'Sign Up', icon: BarChart2 },
   ];
 
   return (

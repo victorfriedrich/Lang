@@ -8,13 +8,15 @@ interface OverdueWord {
   next_review_due_at: string;
 }
 
-export const useOverdueWords = () => {
+export const useOverdueWords = (refreshTrigger: number) => {
   const [overdueWords, setOverdueWords] = useState<OverdueWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOverdueWords = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const { data, error } = await supabase.rpc('get_overdue_words');
 
@@ -34,7 +36,7 @@ export const useOverdueWords = () => {
     };
 
     fetchOverdueWords();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger to the dependency array
 
   return { overdueWords, isLoading, error };
 };

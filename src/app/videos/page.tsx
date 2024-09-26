@@ -5,6 +5,7 @@ import Wordpanel from '../components/Wordpanel';
 import { Switch } from '@/components/ui/switch';
 import { useVideoRecommendations } from '../hooks/useVideoRecommendations';
 import ProtectedRoute from '../components/ProtectedRoute';
+import ConfirmationPopup from '../components/ConfirmationPopup';
 
 const YouTubeVideoGrid: React.FC = () => {
   const [includeCognates, setIncludeCognates] = useState(true);
@@ -22,9 +23,12 @@ const YouTubeVideoGrid: React.FC = () => {
     setSelectedVideo(null);
     if (addedWordsCount > 0) {
       setConfirmationPopup({ count: addedWordsCount, visible: true });
-      setTimeout(() => setConfirmationPopup(prev => ({ ...prev, visible: false })), 3000);
     }
   }, []);
+
+  const handleCloseConfirmationPopup = () => {
+    setConfirmationPopup(prev => ({ ...prev, visible: false }));
+  };
 
   if (isLoading) {
     return (
@@ -114,9 +118,10 @@ const YouTubeVideoGrid: React.FC = () => {
         )}
 
         {confirmationPopup.visible && (
-          <div className="fixed top-4 right-4 bg-white text-slate-700 px-4 py-3 rounded shadow-lg z-50 transition-opacity duration-300">
-            {confirmationPopup.count} {confirmationPopup.count === 1 ? 'word' : 'words'} added to learning set
-          </div>
+          <ConfirmationPopup
+            count={confirmationPopup.count}
+            onClose={handleCloseConfirmationPopup}
+          />
         )}
       </div>
     </ProtectedRoute>

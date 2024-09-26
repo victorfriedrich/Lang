@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Earth,
   KeyRound,
   MessagesSquare,
   NotebookPen,
   Footprints,
+  ArrowLeft,
 } from 'lucide-react';
 import proficiencyData from '../proficiency.json';
 import levelsData from '../levels.json';
 import { useCreateDemoAccount } from '../hooks/useCreateDemoAccount';
-import { UserContext } from '@/context/UserContext';
+import { useInitializeAccount } from '../hooks/useInitializeAccount';
+import { useRouter } from 'next/navigation';
 
 interface ProficiencyItem {
   content: string;
@@ -24,6 +26,11 @@ interface LanguageLevel {
   words: number[];
 }
 
+interface LearningPreference {
+  type: 'Netflix' | 'Conversational' | 'Academic';
+  description: string;
+}
+
 const languageLevelIcons = [
   Footprints,
   KeyRound,
@@ -32,107 +39,190 @@ const languageLevelIcons = [
   Earth,
 ];
 
-const LanguageLevelSelector: React.FC = () => {
+const learningPreferences: LearningPreference[] = [
+  {
+    type: 'Netflix',
+    description: 'Learn the most common words used in your favorite series',
+  },
+  {
+    type: 'Conversational',
+    description: 'Learn the most commonly used words in spoken Spanish',
+  },
+  {
+    type: 'Academic',
+    description: 'Progress towards the next language level',
+  }
+];
+
+const ProficiencyPage: React.FC = () => {
+  const [step, setStep] = useState<number>(1);
   const [selectedLevel, setSelectedLevel] = useState<LanguageLevel | null>(null);
+  const [selectedPreference, setSelectedPreference] = useState<LearningPreference | null>(null);
   const [knownWords, setKnownWords] = useState<number[]>([]);
   const [proficiencyItems, setProficiencyItems] = useState<ProficiencyItem[]>([]);
-  const [levels, setLevels] = useState<LanguageLevel[]>([]);
-  const { createDemoAccount, isLoading } = useCreateDemoAccount();
-  const { user } = useContext(UserContext);
+  const levels: LanguageLevel[] = levelsData as LanguageLevel[];
+  const { createDemoAccount, isLoading, user } = useCreateDemoAccount();
+  const { initializeUserAccount } = useInitializeAccount();
+  const router = useRouter();
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   useEffect(() => {
     if (Array.isArray(proficiencyData)) {
       setProficiencyItems(proficiencyData as ProficiencyItem[]);
     }
-    if (Array.isArray(levelsData)) {
-      setLevels(levelsData as LanguageLevel[]);
-    }
   }, []);
 
   const handleLevelSelect = (level: LanguageLevel) => {
     setSelectedLevel(level);
-    setKnownWords(level.words);
   };
 
-  const handleContinue = async () => {
-    if (selectedLevel) {
-      await createDemoAccount(selectedLevel);
-    } else {
-      alert('Please select a proficiency level.');
+  const handlePreferenceSelect = (preference: LearningPreference) => {
+    setSelectedPreference(preference);
+  };
+
+  const handleNext = () => {
+    if (step === 1 && selectedLevel) {
+      setKnownWords(selectedLevel.words);
+      setStep(2);
+    } else if (step === 2 && selectedPreference) {
+      // Ready to create demo account
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      // Redirect to the next page or perform other actions after successful sign-in
-      console.log('Demo account created for user:', user);
-      // Example: router.push('/dashboard');
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
     }
-  }, [user]);
+  };
+
+  const handleCreateDemoAccount = async () => {
+    if (selectedLevel && selectedPreference) {
+      setIsCreatingAccount(true);
+      try {
+        const demoUser = await createDemoAccount({
+          level: selectedLevel.level,
+          preference: selectedPreference.type,
+        });
+        console.log('Demo account created:', demoUser);
+        await initializeUserAccount(selectedLevel.level);
+        console.log(
+          'Demo account created and initialized with level:',
+          selectedLevel.level
+        );
+        router.push('/dashboard');
+      } catch (error) {
+        console.error('Error creating or initializing demo account:', error);
+        alert('An error occurred. Please try again.');
+        setIsCreatingAccount(false);
+      }
+    }
+  };
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] bg-gray-100">
-      <div className="w-full md:w-1/3 p-4 md:p-6 overflow-y-auto">
-        <h2 className="text-xl font-bold mb-3">How good is your Spanish?</h2>
-        <div className="flex flex-wrap gap-2 md:flex-col md:gap-3 mb-6">
-          {levels.map((level, index) => {
-            const Icon = languageLevelIcons[index] || Earth;
-            return (
-              <div
-                key={level.level}
-                className={`flex-1 md:flex-none flex items-center p-2 md:p-3 bg-white rounded-lg cursor-pointer
-                  ${
-                    selectedLevel?.level === level.level
-                      ? 'ring-2 ring-blue-500'
-                      : 'ring-1 ring-gray-200'
-                  }
-                  min-w-[60px] md:min-w-0`}
-                onClick={() => handleLevelSelect(level)}
-              >
-                <div className="hidden md:flex w-10 h-10 bg-gray-200 rounded-full mr-3 flex-shrink-0 items-center justify-center">
-                  <Icon size={20} />
-                </div>
-                <div className="text-center md:text-left">
-                  <h3 className="font-bold text-sm">{level.level}</h3>
-                  <p className="hidden md:block text-gray-600 text-xs">
-                    {level.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <button
-          onClick={handleContinue}
-          className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Loading...' : 'Try the demo'}
-        </button>
-      </div>
-
-      <div className="w-full md:w-2/3 p-4 md:p-6 bg-white overflow-y-auto">
-        <h2 className="text-xl font-bold">Example Text</h2>
-        <p className="text-gray-600 mb-4">You should know most of the black words</p>
-        <div className="text-base leading-relaxed">
-          {proficiencyItems.map((item, index) => (
-            <span
-              key={index}
-              className={
-                item.id &&
-                typeof item.id === 'number' &&
-                !knownWords.includes(item.id)
-                  ? 'text-orange-500'
-                  : 'text-black'
-              }
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-100">
+      <div className="w-full max-w-xl p-4 md:p-6 overflow-y-auto relative">
+        <div className="flex justify-between items-center mb-3">
+          {step > 1 ? (
+            <button
+              onClick={handleBack}
+              className="text-gray-500 hover:text-gray-700 flex items-center"
             >
-              {item.content}
-            </span>
-          ))}
+              <ArrowLeft size={20} className="mr-1" />
+              <span className="text-sm font-medium">Back</span>
+            </button>
+          ) : (
+            <div></div> // Empty div to maintain layout when back button is not shown
+          )}
+          <span className="text-sm font-medium text-gray-500">Step {step} of 2</span>
         </div>
+
+        {step === 1 && (
+          <>
+            <h2 className="text-xl font-bold mb-3">How good is your Spanish?</h2>
+            <div className="flex flex-col gap-4">
+              {levels.map((level, index) => {
+                const Icon = languageLevelIcons[index] || Earth;
+                return (
+                  <button
+                    key={level.level}
+                    className={`flex items-center p-4 bg-white rounded-lg cursor-pointer w-full text-left
+                      ${
+                        selectedLevel?.level === level.level
+                          ? 'ring-2 ring-blue-500'
+                          : 'ring-1 ring-gray-200'
+                      }`}
+                    onClick={() => handleLevelSelect(level)}
+                  >
+                    <div className="flex w-12 h-12 bg-gray-200 rounded-full mr-4 flex-shrink-0 items-center justify-center">
+                      <Icon size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm">{level.level}</h3>
+                      <p className="text-gray-600 text-xs">
+                        {level.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={handleNext}
+              className={`mt-6 w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white ${
+                selectedLevel
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-gray-400 cursor-not-allowed'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+              disabled={!selectedLevel}
+            >
+              Next
+            </button>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <h2 className="text-xl font-bold mb-3">How do you want to learn?</h2>
+            <div className="flex flex-col gap-4">
+              {learningPreferences.map((preference) => (
+                <button
+                  key={preference.type}
+                  className={`flex items-center p-4 bg-white rounded-lg cursor-pointer w-full text-left
+                    ${
+                      selectedPreference?.type === preference.type
+                        ? 'ring-2 ring-blue-500'
+                        : 'ring-1 ring-gray-200'
+                    }`}
+                  onClick={() => handlePreferenceSelect(preference)}
+                >
+                  <div className="flex w-12 h-12 bg-gray-200 rounded-full mr-4 flex-shrink-0 items-center justify-center">
+                    <Earth size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm">{preference.type}</h3>
+                    <p className="text-gray-600 text-xs">
+                      {preference.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleCreateDemoAccount}
+              className={`mt-6 w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white ${
+                selectedPreference && !isCreatingAccount
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-gray-400 cursor-not-allowed'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+              disabled={!selectedPreference || isCreatingAccount}
+            >
+              {isCreatingAccount ? 'Loading...' : 'Try the demo'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
 };
 
-export default LanguageLevelSelector;
+export default ProficiencyPage;

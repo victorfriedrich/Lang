@@ -13,7 +13,6 @@ export const UserProvider = ({ children }) => {
       const { data: session } = await supabase.auth.getSession();
       setUser(session?.user || null);
 
-      // Optional: set up listener for auth changes
       const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user || null);
       });
@@ -26,5 +25,27 @@ export const UserProvider = ({ children }) => {
     getUser();
   }, []);
 
-  return <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>;
+  const fetchWithAuth = async (url, options = {}) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    const defaultOptions = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+
+    return fetch(url, { ...defaultOptions, ...options });
+  };
+
+  return (
+    <UserContext.Provider value={{ user, fetchWithAuth }}>
+      {children}
+    </UserContext.Provider>
+  );
 };

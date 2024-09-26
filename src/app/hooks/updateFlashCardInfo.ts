@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabaseclient';
 
 interface FlashcardTestParams {
-  userId: string;
   wordId: number;
   testType: 'flashcard' | 'typing';
   testResult: boolean;
@@ -9,7 +8,6 @@ interface FlashcardTestParams {
 
 export const useUpdateFlashCardInfo = () => {
   const updateFlashCardInfo = async ({
-    userId,
     wordId,
     testType,
     testResult,

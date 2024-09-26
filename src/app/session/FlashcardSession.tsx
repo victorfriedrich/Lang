@@ -36,7 +36,6 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
   const [wordList, setWordList] = useState<WordItem[]>([]);
   const [showNextCard, setShowNextCard] = useState(false);
   const { updateFlashCardInfo } = useUpdateFlashCardInfo();
-  const userId = '529cf561-a58a-4e90-9148-5e9b0f8c49e1';
 
   const [learningSet, setLearningSet] = useState(initialLearningSet);
 
@@ -61,7 +60,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
       setWordList(prev => [...prev, { word: currentCard.word, translation: currentCard.translation, correct: true }]);
       setShowCorrectAnimation(true);
       setShowNextCard(true);
-      updateFlashCardInfo({ userId, wordId: currentCard.id, testType: 'flashcard', testResult: true });
+      updateFlashCardInfo({ wordId: currentCard.id, testType: 'flashcard', testResult: true });
       setTimeout(() => {
         setShowCorrectAnimation(false);
         setShowNextCard(false);
@@ -71,14 +70,14 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
       setIncorrectCards(prev => [...prev, currentCard]);
       setWordList(prev => [...prev, { word: currentCard.word, translation: currentCard.translation, correct: false }]);
       setFeedback('incorrect');
-      updateFlashCardInfo({ userId, wordId: currentCard.id, testType: 'flashcard', testResult: false });
+      updateFlashCardInfo({ wordId: currentCard.id, testType: 'flashcard', testResult: false });
       if (!wasFlipped) {
         setWaitForNextButton(true);
       } else {
         handleNext();
       }
     }
-  }, [currentCard, handleNext, updateFlashCardInfo, userId]);
+  }, [currentCard, handleNext, updateFlashCardInfo]);
 
   const handleSubmit = useCallback(() => {
     const isCorrect = inputValue.toLowerCase().trim() === (frontSide === 'spanish' ? currentCard.translation : currentCard.word).toLowerCase();

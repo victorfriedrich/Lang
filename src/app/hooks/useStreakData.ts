@@ -7,7 +7,7 @@ interface StreakData {
   revision_count: number;
 }
 
-export const useStreakData = () => {
+export const useStreakData = (refreshTrigger: number) => {
   const { user } = useContext(UserContext);
   const [streakData, setStreakData] = useState<StreakData[]>([]);
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -17,11 +17,11 @@ export const useStreakData = () => {
 
   useEffect(() => {
     if (user) {
-      fetchStreakData(user.id);
+      fetchStreakData();
     }
-  }, [user]);
+  }, [refreshTrigger]); // Add refreshTrigger to the dependency array
 
-  const fetchStreakData = async (userId: string) => {
+  const fetchStreakData = async () => {
     setIsLoading(true);
     setError(null);
 

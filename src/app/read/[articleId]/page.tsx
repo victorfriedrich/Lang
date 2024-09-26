@@ -1,28 +1,62 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import WordInfoPopup from '@/app/components/WordInfoPopup';
-import exampleArticle from '@/app/hooks/exampleArticle.json';
-import { useWordInfo } from '@/app/hooks/useWordInfo';
+import CompactWordInfoPopup from '@/app/components/CompactWordInfoPopup';
+import { useArticleText } from '@/app/hooks/useArticleText';
 import { useGetLearningWords } from '@/app/hooks/useGetLearningWords';
-
+import { useGetTranslationForWord } from '@/app/hooks/useGetTranslationForWord';
+import ProtectedRoute from '@/app/components/ProtectedRoute';
+import { ArrowLeft } from 'lucide-react';
+import LoadingState from '@/app/components/LoadingState';
 const Page = () => {
-  const [selectedWord, setSelectedWord] = useState<{ word: string, wordId: number } | null>(null);
+  const { articleId } = useParams();
+  const router = useRouter();
+  const [selectedWord, setSelectedWord] = useState<{ word: string, wordId: number, translation?: string, position: { x: number, y: number } } | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const articleRef = useRef<HTMLDivElement>(null);
 
-  const wordIds = useMemo(() => 
-    exampleArticle.filter(wordObj => wordObj.id !== undefined).map(wordObj => wordObj.id), 
-    [exampleArticle]
+  const { articleTitle, articleText, isLoading: isLoadingArticle, error: articleError } = useArticleText(articleId as string);
+
+  const wordIds = useMemo(() =>
+    Array.isArray(articleText)
+      ? articleText.filter(wordObj => wordObj.id !== undefined).map(wordObj => wordObj.id as number)
+      : [],
+    [articleText]
   );
 
-  const { learningWords, isLoading, error } = useGetLearningWords(wordIds);
+  const { learningWords, isLoading: isLoadingWords, error: wordsError } = useGetLearningWords(wordIds);
 
-  const unknownWordIds = learningWords.filter(word => word.status === 'unknown').map(word => word.word_id);
-  const learningWordIds = learningWords.filter(word => word.status === 'learning').map(word => word.word_id);
+  const [unknownWordIds, setUnknownWordIds] = useState<number[]>([]);
+  const [learningWordIds, setLearningWordIds] = useState<number[]>([]);
 
-  const handleWordClick = (word: string, wordId: number) => {
-    setSelectedWord({ word, wordId });
-    setShowPopup(true);
+  useEffect(() => {
+    setUnknownWordIds(learningWords.filter(word => word.status === 'unknown').map(word => word.word_id));
+    setLearningWordIds(learningWords.filter(word => word.status === 'learning').map(word => word.word_id));
+  }, [learningWords]);
+
+  const { getTranslationForWord, loading: translationLoading, error: translationError } = useGetTranslationForWord();
+
+  const handleWordClick = async (word: string, wordId: number, event: React.MouseEvent) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const articleRect = articleRef.current?.getBoundingClientRect();
+
+    if (articleRect) {
+      setShowPopup(false); // Hide the popup while loading
+      const translation = await getTranslationForWord(wordId);
+
+      setSelectedWord({
+        word,
+        wordId,
+        translation,
+        position: {
+          x: rect.left + rect.width / 2 - articleRect.left,
+          y: rect.top - articleRect.top - 15
+        }
+      });
+      setShowPopup(true);
+    }
   };
 
   const handleClosePopup = () => {
@@ -30,61 +64,88 @@ const Page = () => {
     setSelectedWord(null);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  const handleAddToLearning = useCallback((wordId: number) => {
+    setLearningWordIds(prev => [...prev, wordId]);
+  }, []);
+
+  const handleBackToArticles = () => {
+    router.push('/articles');
+  };
+
+  if (isLoadingArticle || isLoadingWords) {
+    return <LoadingState />
   }
 
-  if (error) {
-    return <div>Error: {error}</div>;
+  if (articleError || wordsError) {
+    return <div>Error: {articleError || wordsError}</div>;
   }
 
   return (
-    <div className="article-container bg-white p-8 space-y-2 text-gray-800">
-      <h1 className="text-3xl font-bold mb-4">Article</h1>
-      {exampleArticle.map((wordObj, index) => {
-        const word = wordObj.content;
-        const wordId = wordObj.id;
-        let className = "cursor-pointer hover:text-gray-500 ";
+    <ProtectedRoute>
+      <div className="article-container relative bg-white p-8 space-y-2 text-gray-800 leading-relaxed" ref={articleRef}>
+        <button
+          onClick={handleBackToArticles}
+          className="mb-4 flex items-center text-gray-500 hover:text-blue-800"
+        >
+          <ArrowLeft className="mr-2" size={20} />
+          Back
+        </button>
+        <h1 className="text-3xl font-bold mb-6">{articleTitle.replaceAll("_", " ")}</h1>
+        <div>
+        {Array.isArray(articleText) ? articleText.map((wordObj, index) => {
+          const word = wordObj.content;
+          const wordId = wordObj.id;
+          let className = "cursor-pointer hover:text-gray-500 ";
 
-        if (unknownWordIds.includes(wordId)) {
-          className += "text-orange-500 hover:text-orange-600 ";
-        } else if (learningWordIds.includes(wordId)) {
-          className += "underline underline-thin";
-        }
+          if (wordId !== undefined && unknownWordIds.includes(wordId)) {
+            className += "text-orange-500 hover:text-orange-600 ";
+          } else if (wordId !== undefined && learningWordIds.includes(wordId)) {
+            className += "underline underline-thin";
+          }
 
-        if(wordId === undefined) {
+          if (word === "\n\n") {
+            return <><br key={`br1-${index}`} /><br key={`br2-${index}`} /></>;
+          }
+
+          if (word === "\n") {
+            return <br key={`br-${index}`} />;
+          }
+
+          if (wordId === undefined) {
             return (
-            <span
-            key={index}
-            className={className}
-          >
-            {word}
-          </span>
-        )
-        }
+              <span
+                key={index}
+                className={className}
+              >
+                {word}
+              </span>
+            );
+          }
 
-        return (
-          <span
-            key={index}
-            className={className}
-            onClick={() => handleWordClick(word, wordId)}
-          >
-            {word}
-          </span>
-        );
-      })}
-      {showPopup && selectedWord && (
-        <WordInfoPopup
-          onClose={handleClosePopup}
-          word={selectedWord.word}
-          defaultTranslation="default translation"
-          customTranslation="custom translation"
-          nextReview="next review date"
-          userId="user id"
-          wordId={selectedWord.wordId}
-        />
-      )}
-    </div>
+          return (
+            <span
+              key={index}
+              className={className}
+              onClick={(e) => handleWordClick(word, wordId, e)}
+            >
+              {word}
+            </span>
+          );
+        }) : <div>No article text available</div>}
+        {showPopup && selectedWord && selectedWord.translation && (
+          <CompactWordInfoPopup
+            word={selectedWord.word}
+            wordId={selectedWord.wordId}
+            translation={selectedWord.translation}
+            onClose={handleClosePopup}
+            position={selectedWord.position}
+            onAddToLearning={handleAddToLearning}
+            showThumbs={!unknownWordIds.includes(selectedWord.wordId)}
+          />
+        )}
+        </div>
+      </div>
+    </ProtectedRoute >
   );
 };
 

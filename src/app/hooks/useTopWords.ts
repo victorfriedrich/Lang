@@ -8,13 +8,15 @@ interface TopWord {
   next_review_due_at: string;
 }
 
-export const useTopWords = () => {
+export const useTopWords = (refreshTrigger: number) => {
   const [topWords, setTopWords] = useState<TopWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTopWords = async () => {      
+    const fetchTopWords = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const { data, error } = await supabase.rpc('get_top_words_by_due_date');
 
@@ -32,7 +34,7 @@ export const useTopWords = () => {
     };
 
     fetchTopWords();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger to the dependency array
 
   return { topWords, isLoading, error };
 };
