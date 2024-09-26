@@ -8,6 +8,7 @@ import UrlParser from './UrlParser';
 import ArticleList from './ArticleList';
 import LanguageLevelSelector from './LanguageLevelSelector';
 import YouTubeVideoGrid from './YouTubeVideoGrid';
+import ProficiencyPage from '../get-started/page';
 
 const AppClient: React.FC = () => {
   const pathname = usePathname();
@@ -25,6 +26,7 @@ const AppClient: React.FC = () => {
   const renderContent = () => {
     switch (pathname) {
       case '/':
+        return <ProficiencyPage />;
       case '/articles':
         return <ArticleList />;
       case '/parse':

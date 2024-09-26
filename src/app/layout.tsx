@@ -29,12 +29,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const navItems = [
-    { href: '/articles', name: 'Articles', icon: BookOpen },
-    { href: '/videos', name: 'Videos', icon: Film },
     { href: '/vocabulary', name: 'Vocabulary', icon: BookMarked },
     { href: '/progress', name: 'Learning Progress', icon: BarChart2 },
-    { href: '/parse', name: 'Parse URL', icon: LinkIcon },
-    { href: '/proficiency', name: 'Sign Up', icon: BarChart2 },
+    { href: '/articles', name: 'Articles', icon: BookOpen },
+    { href: '/videos', name: 'Videos', icon: Film },
   ];
 
   return (

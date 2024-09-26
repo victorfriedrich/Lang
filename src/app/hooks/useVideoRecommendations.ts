@@ -21,7 +21,8 @@ export const useVideoRecommendations = (includeCognates: boolean, selectedCatego
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetchWithAuth('http://127.0.0.1:8000/categories');
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetchWithAuth(`${API_URL}/categories`);
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
@@ -39,8 +40,10 @@ export const useVideoRecommendations = (includeCognates: boolean, selectedCatego
   useEffect(() => {
     const fetchVideos = async () => {
       try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
         const categoryParam = selectedCategory === 'All Videos' ? '' : `&category=${selectedCategory}`;
-        const response = await fetchWithAuth(`http://127.0.0.1:8000/recommendations/videos/?include_cognates=${includeCognates}${categoryParam}`);
+
+        const response = await fetchWithAuth(`${API_URL}/recommendations/videos/?include_cognates=${includeCognates}${categoryParam}`);
         if (!response.ok) {
           throw new Error('Failed to fetch recommendations');
         }

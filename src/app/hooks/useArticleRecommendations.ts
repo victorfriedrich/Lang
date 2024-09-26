@@ -24,7 +24,8 @@ export const useArticleRecommendations = (includeCognates: boolean, selectedCate
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetchWithAuth('http://127.0.0.1:8000/categories/articles');
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetchWithAuth(`${API_URL}/categories/articles`);
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
@@ -43,7 +44,8 @@ export const useArticleRecommendations = (includeCognates: boolean, selectedCate
     const fetchArticles = async () => {
       try {
         const categoryParam = selectedCategory === 'All Articles' ? '' : `&category=${selectedCategory}`;
-        const response = await fetchWithAuth(`http://127.0.0.1:8000/recommendations/articles/?include_cognates=${includeCognates}${categoryParam}`);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetchWithAuth(`${API_URL}/recommendations/articles/?include_cognates=${includeCognates}${categoryParam}`);
         if (!response.ok) {
           throw new Error('Failed to fetch recommendations');
         }

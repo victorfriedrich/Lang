@@ -11,6 +11,7 @@ interface ArticleData {
 }
 
 export const useArticleText = (articleId: string) => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const [articleTitle, setArticleTitle] = useState<string>('');
   const [articleText, setArticleText] = useState<ArticleWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +22,7 @@ export const useArticleText = (articleId: string) => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://127.0.0.1:8000/article/${articleId}`);
+        const response = await fetch(`${API_URL}/article/${articleId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
