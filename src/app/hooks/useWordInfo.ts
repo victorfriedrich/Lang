@@ -7,7 +7,7 @@ interface WordInfo {
   alternative_wordforms: string[];
 }
 
-export const useWordInfo = (userId: string, wordId: number) => {
+export const useWordInfo = (wordId: number) => {
   const [wordInfo, setWordInfo] = useState<WordInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export const useWordInfo = (userId: string, wordId: number) => {
     
     fetchWordInfo();
     console.log(wordInfo);
-  }, [userId]);
+  }, []);
 
   return { wordInfo, isLoading, error };
 };

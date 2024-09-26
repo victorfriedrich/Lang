@@ -1,12 +1,14 @@
+// 'use client';
+
 // import React, { useState, useEffect, FormEvent, useContext } from 'react';
 // import { Send, RefreshCw } from 'lucide-react';
 // import { supabase } from '@/lib/supabaseclient';
-// import { useRouter } from 'next/navigation';
 // import { UserContext } from '@/context/UserContext';
+// import { useRouter } from 'next/navigation';
 
 // function Login() {
 //   const [email, setEmail] = useState<string>('');
-//   const [isLoading, setIsLoading] = useState<boolean>(false);
+//   const [loading, setIsLoading] = useState<boolean>(false);
 //   const [emailSent, setEmailSent] = useState<boolean>(false);
 //   const [retryTimer, setRetryTimer] = useState<number>(60);
 //   const { user } = useContext(UserContext);
@@ -27,11 +29,11 @@
 //   }, [emailSent, retryTimer]);
 
 //   useEffect(() => {
-//     if (user && !isLoading) {
+//     if (user && !loading) {
 //       // Redirect authenticated users to the dashboard or home page
 //       router.push('/');
 //     }
-//   }, [user, isLoading, router]);
+//   }, [user, loading, router]);
 
 //   const handleLogin = async (e: FormEvent) => {
 //     e.preventDefault();
@@ -47,11 +49,13 @@
 //       setEmailSent(true);
 //       setRetryTimer(60);
 //     } catch (error) {
-//       if (error instanceof Error) {
-//         alert(error.message);
-//       } else {
-//         alert('An unknown error occurred');
-//       }
+//         if (error instanceof Error) {
+//             console.error('Error sending email:', error.message);
+//             alert(`Error sending email: ${error.message}`);
+//           } else {
+//             console.error('An unknown error occurred');
+//             alert('An unknown error occurred');
+//           }
 //     } finally {
 //       setIsLoading(false);
 //     }
@@ -80,10 +84,10 @@
 //         <div className="w-full max-w-md space-y-8">
 //           <div>
 //             <h1 className="mt-6 text-center text-4xl font-extrabold text-gray-800">
-//               Welcome to Athena
+//               Join Wordcat
 //             </h1>
 //             <p className="mt-2 text-center text-lg text-gray-600">
-//               Your place to find better lecture scripts
+//               Discover spanish media optimized for your vocabulary
 //             </p>
 //           </div>
 //           <form className="mt-8 space-y-6" onSubmit={handleLogin}>
