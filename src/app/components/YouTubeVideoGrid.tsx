@@ -52,7 +52,7 @@ const YouTubeVideoGrid: React.FC = () => {
 
 
             <div className='flex justify-between'>
-                <div className="flex space-x-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4">
                     {categories.map((category) => (
                         <button
                             key={category.category}
@@ -65,9 +65,6 @@ const YouTubeVideoGrid: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-2 mb-4">
-                    <label htmlFor="cognate-toggle" className="text-sm font-medium">
-                        Include cognates
-                    </label>
                     <Switch
                         checked={includeCognates}
                         onCheckedChange={setIncludeCognates}

@@ -1,51 +1,122 @@
-import React, { useState } from 'react';
-import { ChevronRight, Search } from 'lucide-react';
-import CourseList from './CourseList';
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X } from 'lucide-react';
 
 interface SidebarProps {
-    chatRooms: any[];
-    sidebarOpen: boolean;
-    setSidebarOpen: (open: boolean) => void;
-    documentName: string | undefined;
-    handleJoinRoom: (roomId: string) => void;
+  documentName?: string;
 }
 
-export default function Sidebar({ chatRooms, sidebarOpen, setSidebarOpen, documentName, handleJoinRoom }: SidebarProps) {
-    const [searchTerm, setSearchTerm] = useState('');
+const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-    const filteredChatRooms = chatRooms.filter(room =>
-        room.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  useEffect(() => {
+    const storedState = localStorage.getItem('sidebar-collapsed');
+    if (storedState) {
+      setIsCollapsed(storedState === 'true');
+    }
+  }, []);
 
-    return (
-        <div className={`bg-gray-100 border-r border-gray-200 overflow-y-auto transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
-            <div className="p-3">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className={`text-xl font-bold text-gray-800 ${!sidebarOpen && 'hidden'}`}>Courses</h2>
-                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-gray-500 hover:text-gray-700">
-                        <ChevronRight className={`h-5 w-5 ml-2 transform transition-transform ${sidebarOpen ? 'rotate-0' : 'rotate-180'}`} />
-                    </button>
-                </div>
-                {sidebarOpen && (
-                    <div className="mb-4 relative">
-                        <input
-                            type="text"
-                            placeholder="Search courses..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-0 focus:ring-blue-500"
-                        />
-                        <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" />
-                    </div>
-                )}
-                
-                <CourseList
-                    chatRooms={filteredChatRooms}
-                    sidebarOpen={sidebarOpen}
-                    documentName={documentName}
-                    handleJoinRoom={handleJoinRoom}
-                />
-            </div>
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', isCollapsed.toString());
+  }, [isCollapsed]);
+
+  const navItems = [
+    { href: '/vocabulary', name: 'Vocabulary', icon: BookMarked },
+    { href: '/progress', name: 'Learning Progress', icon: BarChart2 },
+    { href: '/articles', name: 'Articles', icon: BookOpen },
+    { href: '/videos', name: 'Videos', icon: Film },
+  ];
+
+  const handleJoinRoom = async (roomId: string) => {
+    console.log(roomId);
+  }
+
+  const toggleSidebar = () => {
+    setIsMobileOpen(!isMobileOpen);
+  }
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-2 left-2 right-0 z-50">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-md bg-gray-100 border border:transparent hover:border-blue-700 hover:text-blue-700 focus:outline-none"
+          aria-label={isMobileOpen ? "Close Menu" : "Open Menu"}
+        >
+          {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <div
+        className={`
+          fixed inset-y-0 left-0 z-40 
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:relative md:translate-x-0 md:flex-shrink-0 
+          bg-gray-100 border-r border-gray-200 overflow-y-auto
+          ${isCollapsed ? 'md:w-16' : 'md:w-60'}
+          w-60 md:block
+          ${isMobileOpen ? 'block' : 'hidden'}
+          md:pt-0 pt-16
+        `}
+      >
+        <div className="p-3 flex flex-col h-full">
+          {/* Desktop Toggle Button */}
+          <div className="hidden md:flex items-center justify-between mb-4">
+            {!isCollapsed && (
+              <h2 className="text-xl font-bold text-gray-800">Navigation</h2>
+            )}
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-1 rounded-md hover:bg-gray-200"
+              aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              <ChevronRight
+                size={20}
+                className={`transform transition-transform ${isCollapsed ? 'rotate-180' : 'rotate-0'}`}
+              />
+            </button>
+          </div>
+
+          {/* Navigation Items */}
+          <div className="flex-1 space-y-1">
+            {navItems.map((item) => (
+              <Link
+                href={item.href}
+                key={item.href}
+                onClick={() => {
+                  handleJoinRoom(item.href);
+                  setIsMobileOpen(false);
+                }}
+                className={`flex items-center py-2 px-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out ${
+                  isCollapsed
+                    ? 'md:justify-center'
+                    : 'justify-start text-gray-800 hover:bg-gray-200'
+                }`}
+              >
+                <item.icon className="h-5 w-5 text-gray-500" />
+                <span className={`ml-2 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.name}</span>
+              </Link>
+            ))}
+          </div>
         </div>
-    );
-}
+      </div>
+
+      {/* Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        ></div>
+      )}
+    </>
+  );
+};
+
+export default Sidebar;

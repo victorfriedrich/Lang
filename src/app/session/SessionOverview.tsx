@@ -37,7 +37,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
   }, [incorrectCount]);
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-[calc(100vh-2rem)] bg-white"> {/* Adjusted height to account for demo header */}
       <div className="border-b">
         <div className="flex justify-between items-center p-4">
           <button className="text-gray-500" onClick={onExit}>

@@ -79,7 +79,7 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
 
   return (
     <div 
-      className={`fixed top-0 right-0 h-full w-1/3 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col z-50 ${isShiftPressed ? 'select-none' : ''}`}
+      className={`fixed top-0 right-0 h-full w-full md:w-1/3 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col z-50 ${isShiftPressed ? 'select-none' : ''}`}
       onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the panel
     >
       <Header videoTitle={videoTitle} onClose={onClose} />
@@ -97,11 +97,11 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
   );
 };
 
-const Header: React.FC<{ videoTitle: string; onClose: () => void }> = ({ videoTitle, onClose }) => (
+const Header: React.FC<{ videoTitle: string; onClose: (addedWordsCount: number) => void }> = ({ videoTitle, onClose }) => (
   <div className="p-4 border-b">
     <div className="flex justify-between items-center">
       <h2 className="text-lg font-semibold">{videoTitle}</h2>
-      <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+      <button onClick={() => onClose(0)} className="text-gray-500 hover:text-gray-700">
         <X size={24} />
       </button>
     </div>

@@ -23,7 +23,7 @@ const DemoAccountHeader: React.FC = () => {
 
   return (
     <div className="bg-blue-700 text-white text-center py-1">
-      This is a demo account. <Link href="/start-learning" className="underline underline-offset-2">Sign up</Link> to save your progress.
+      Demo account | <Link href="/start-learning" className="underline underline-offset-2">Sign up</Link> to save your progress.
     </div>
   );
 };
