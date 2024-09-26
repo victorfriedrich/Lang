@@ -12,7 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireDemo =
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && user !== undefined) {
       if (!user) {
         // Not logged in
         router.push('/get-started');

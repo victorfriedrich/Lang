@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import Head from 'next/head';
 import { Play } from 'lucide-react';
 import { FlashcardSession } from '../session/FlashcardSession';
 import { ModeSelection } from '../session/ModeSelection';
@@ -117,6 +118,9 @@ const VocabularyLearnerWithStreak = () => {
 
   return (
     <ProtectedRoute>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      </Head>
       <div className="w-full bg-white overflow-hidden">
         <Header currentStreak={currentStreak} />
 

@@ -17,7 +17,8 @@ export const useMissingWords = (videoId: string) => {
   useEffect(() => {
     const fetchMissingWords = async () => {
       try {
-        const response = await fetchWithAuth(`http://127.0.0.1:8000/api/videos/${videoId}/missing-words`, {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetchWithAuth(`${API_URL}/api/videos/${videoId}/missing-words`, {
           method: 'POST',
         });
 
