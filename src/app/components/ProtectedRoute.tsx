@@ -15,7 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireDemo =
     if (!loading) {
       if (!user) {
         // Not logged in
-        router.push('/login');
+        router.push('/get-started');
       } else if (!requireDemo && user.isDemo) {
         // Logged in as demo but the route requires a regular account
         router.push('/migrate-login');

@@ -104,7 +104,7 @@ const MigrateLogin = () => {
                             join learnfive
                         </h1>
                         <p className="mt-2 text-center text-lg text-gray-600">
-                            create an account and start becoming fluent
+                            (this currently does not work)
                         </p>
                     </div>
                     <form className="mt-8 space-y-6" onSubmit={handleMigrate}>

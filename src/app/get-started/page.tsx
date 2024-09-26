@@ -72,6 +72,13 @@ const ProficiencyPage: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    console.log('user', user?.is_anonymous); // this is undefined
+    if (user && user.is_anonymous) {
+      router.push('/vocabulary');
+    }
+  }, [user, router]);
+
   const handleLevelSelect = (level: LanguageLevel) => {
     setSelectedLevel(level);
   };
@@ -109,7 +116,7 @@ const ProficiencyPage: React.FC = () => {
           'Demo account created and initialized with level:',
           selectedLevel.level
         );
-        router.push('/dashboard');
+        router.push('/vocabulary');
       } catch (error) {
         console.error('Error creating or initializing demo account:', error);
         alert('An error occurred. Please try again.');

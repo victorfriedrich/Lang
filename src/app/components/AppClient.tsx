@@ -26,15 +26,14 @@ const AppClient: React.FC = () => {
   const renderContent = () => {
     switch (pathname) {
       case '/':
-        return <ProficiencyPage />;
       case '/articles':
         return <ArticleList />;
       case '/parse':
         return <UrlParser />;
-      case '/proficiency':
-        return <LanguageLevelSelector />;
       case '/ranking':
         return <YouTubeVideoGrid />;
+      case '/get-started':
+        return <ProficiencyPage />;
       default:
         if (pathname?.startsWith('/read/')) {
           const articleId = pathname.split('/').pop();

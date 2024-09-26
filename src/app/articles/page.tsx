@@ -1,5 +1,7 @@
-import ArticleList from '../components/ArticleList';
+"use client";
 
+import ArticleList from '../components/ArticleList';
+import ProtectedRoute from '../components/ProtectedRoute';
 export default function ArticlesPage() {
-  return <ArticleList />;
+  return <ProtectedRoute><ArticleList /></ProtectedRoute>;
 }
