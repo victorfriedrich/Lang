@@ -37,7 +37,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
   }, [incorrectCount]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-white"> {/* Changed from fixed height to min-height */}
+    <div className="flex flex-col h-[calc(100dvh-48px)] md:h-[calc(100dvh-32px)] bg-white pt-8 md:pt-0"> {/* Adjusted for mobile header */}
       <div className="border-b">
         <div className="flex justify-between items-center p-4">
           <button className="text-gray-500" onClick={onExit}>

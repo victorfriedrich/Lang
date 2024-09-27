@@ -9,7 +9,8 @@ interface NewWordsTableProps {
 }
 
 const NewWordsTable: React.FC<NewWordsTableProps> = ({ words: initialWords, onWordAdded }) => {
-  const [words, setWords] = useState(initialWords);
+  const [words, setWords] = useState(initialWords.slice(0, 5));
+  const [remainingWords, setRemainingWords] = useState(initialWords.slice(5));
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [addedCount, setAddedCount] = useState(0);
   const { addWordsToUserwords } = useUpdateUserwords();
@@ -17,7 +18,14 @@ const NewWordsTable: React.FC<NewWordsTableProps> = ({ words: initialWords, onWo
   const handleAddWord = async (wordId: number) => {
     try {
       await addWordsToUserwords([wordId]);
-      setWords(prevWords => prevWords.filter(word => word.word_id !== wordId));
+      setWords(prevWords => {
+        const updatedWords = prevWords.filter(word => word.word_id !== wordId);
+        if (remainingWords.length > 0) {
+          updatedWords.push(remainingWords[0]);
+          setRemainingWords(remainingWords.slice(1));
+        }
+        return updatedWords;
+      });
       setAddedCount(prevCount => prevCount + 1);
       setShowConfirmation(true);
       onWordAdded();
