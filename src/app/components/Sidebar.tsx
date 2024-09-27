@@ -4,7 +4,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X } from 'lucide-react';
 import { UserContext } from '@/context/UserContext'; // Import UserContext
-import { useTopWords } from '@/app/hooks/useTopWords'; // Import useTopWords
 
 interface SidebarProps {
   documentName?: string;
