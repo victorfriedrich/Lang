@@ -111,11 +111,11 @@ const ProgressPage = () => {
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-2">Words Learned</h2>
-              <p className="text-3xl font-bold text-green-600">{uniqueLearned}</p>
+              <p className="text-3xl font-bold text-blue-600">{uniqueLearned}</p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-2">Learning Efficiency</h2>
-              <p className="text-3xl font-bold text-purple-600">
+              <p className="text-3xl font-bold text-blue-600">
                 {recallEfficiency !== null ? `${Math.round(recallEfficiency)}%` : 'N/A'}
               </p>
             </div>

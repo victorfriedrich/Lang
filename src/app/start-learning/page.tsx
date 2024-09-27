@@ -101,10 +101,10 @@ const MigrateLogin = () => {
                 <div className="w-full max-w-md space-y-8 pb-32">
                     <div>
                         <h1 className="text-center text-4xl font-extrabold text-gray-800">
-                            join learnfive
+                            Join LearnFive
                         </h1>
                         <p className="mt-2 text-center text-lg text-gray-600">
-                            (this currently does not work)
+                            Get access to all features
                         </p>
                     </div>
                     <form className="mt-8 space-y-6" onSubmit={handleMigrate}>

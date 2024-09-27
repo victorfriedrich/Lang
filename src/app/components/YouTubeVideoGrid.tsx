@@ -104,7 +104,7 @@ const YouTubeVideoGrid: React.FC = () => {
             {/* Side panel for new words */}
             {selectedVideo && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                    className="fixed inset-0 bg-black bg-opacity-50 z-20"
                     onClick={() => setSelectedVideo(null)}
                 >
                     <Wordpanel

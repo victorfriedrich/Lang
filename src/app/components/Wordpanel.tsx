@@ -79,7 +79,24 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
 
   return (
     <div 
-      className={`fixed top-0 right-0 h-full w-full md:w-1/3 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col z-50 ${isShiftPressed ? 'select-none' : ''}`}
+      className={`
+        fixed 
+        top-12 md:top-0  /* Added top-16 for mobile to avoid overlap */
+        right-0 
+        h-full 
+        w-full 
+        md:w-1/3 
+        bg-white 
+        shadow-lg 
+        transform 
+        transition-transform 
+        duration-300 
+        ease-in-out 
+        flex 
+        flex-col 
+        z-50 
+        ${isShiftPressed ? 'select-none' : ''}
+      `}
       onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the panel
     >
       <Header videoTitle={videoTitle} onClose={onClose} />

@@ -90,6 +90,7 @@ const Page = () => {
           <ArrowLeft className="mr-2" size={20} />
           Back
         </button>
+        <span className="text-gray-500 text-sm">Click on a word to see its translation</span>
         <h1 className="text-3xl font-bold mb-6">{articleTitle.replaceAll("_", " ")}</h1>
         <div>
         {Array.isArray(articleText) ? articleText.map((wordObj, index) => {

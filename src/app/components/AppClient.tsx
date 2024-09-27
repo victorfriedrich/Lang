@@ -3,7 +3,6 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 
-import Reader from './Reader';
 import UrlParser from './UrlParser';
 import ArticleList from './ArticleList';
 import LanguageLevelSelector from './LanguageLevelSelector';
@@ -35,16 +34,6 @@ const AppClient: React.FC = () => {
       case '/get-started':
         return <ProficiencyPage />;
       default:
-        if (pathname?.startsWith('/read/')) {
-          const articleId = pathname.split('/').pop();
-          return (
-            <Reader
-              articleId={articleId || ''}
-              onTranslationAdded={handleTranslationAdded}
-              onSentenceComplete={handleSentenceComplete}
-            />
-          );
-        }
         return <ArticleList />; // Default route
     }
   };
