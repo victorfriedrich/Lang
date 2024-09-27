@@ -159,7 +159,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
   const percentageComplete = Math.round((completedWords / totalWords) * 100);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-32px)] bg-white">
+    <div className="flex flex-col h-[calc(100vh-44px)] bg-white">
       <div className="border-b">
         <div className="flex justify-between items-center p-4">
           <button className="text-gray-500" onClick={onExit}>
@@ -175,9 +175,12 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
             style={{ width: `${percentageComplete}%` }}
           />
         </div>
+        
       </div>
+      <p className="text-gray-500 text-sm text-center my-12 md:hidden">Swipe to go through flashcards</p>
 
       <div className="flex-grow flex flex-col items-center justify-center p-4">
+      
         <div className="relative w-full max-w-md">
           <AnimatePresence>
             {showCorrectAnimation && (

@@ -140,7 +140,8 @@ const ProficiencyPage: React.FC = () => {
           ) : (
             <div></div> // Empty div to maintain layout when back button is not shown
           )}
-          <span className="text-sm font-medium text-gray-500">Step {step} of 2</span>
+          
+          {/* <span className="text-sm font-medium text-gray-500">Step {step} of 2</span> */}
         </div>
 
         {step === 1 && (

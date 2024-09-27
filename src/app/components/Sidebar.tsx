@@ -54,13 +54,13 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
       <div className="md:hidden bg-blue-700 text-white fixed top-0 left-0 right-0 z-50 flex items-center">
         <button
           onClick={toggleSidebar}
-          className="px-3 py-3 rounded-md focus:outline-none"
+          className="pl-3 py-3 rounded-md focus:outline-none"
           aria-label={isMobileOpen ? "Close Menu" : "Open Menu"}
         >
           {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
         {isDemoVisible && (
-          <div className="flex-1 text-center py-2 ml-2 rounded-md">
+          <div className="flex-1 text-center py-2 rounded-md">
             Demo account | <Link href="/start-learning" className="underline underline-offset-2">Sign up</Link> to save your progress
           </div>
         )}
