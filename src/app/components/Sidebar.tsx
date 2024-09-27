@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X } from 'lucide-react';
+import { UserContext } from '@/context/UserContext'; // Import UserContext
+import { useTopWords } from '@/app/hooks/useTopWords'; // Import useTopWords
 
 interface SidebarProps {
   documentName?: string;
@@ -11,6 +13,9 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const { user } = useContext(UserContext); // Access user context
+  const [isDemoVisible, setIsDemoVisible] = useState(false); // State for demo message
 
   useEffect(() => {
     const storedState = localStorage.getItem('sidebar-collapsed');
@@ -22,6 +27,12 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', isCollapsed.toString());
   }, [isCollapsed]);
+
+  useEffect(() => {
+    if (user?.is_anonymous) {
+      setIsDemoVisible(true);
+    }
+  }, [user]);
 
   const navItems = [
     { href: '/vocabulary', name: 'Vocabulary', icon: BookMarked },
@@ -41,14 +52,19 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-2 left-2 right-0 z-50">
+      <div className="md:hidden bg-blue-700 text-white fixed top-0 left-0 right-0 z-50 flex items-center">
         <button
           onClick={toggleSidebar}
-          className="p-2 rounded-md bg-gray-100 border border:transparent hover:border-blue-700 hover:text-blue-700 focus:outline-none"
+          className="p-2 rounded-md focus:outline-none"
           aria-label={isMobileOpen ? "Close Menu" : "Open Menu"}
         >
-          {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
+        {isDemoVisible && (
+          <div className="flex-1 text-center py-2 ml-2 rounded-md">
+            Demo account | <Link href="/start-learning" className="underline underline-offset-2">Sign up</Link> to save your progress.
+          </div>
+        )}
       </div>
 
       {/* Sidebar */}

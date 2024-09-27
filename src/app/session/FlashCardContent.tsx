@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import './FlashCardContent.css'; // Import the CSS file
 
 interface FlashCardContentProps {
   card: { word: string; translation: string };
@@ -26,19 +27,22 @@ export const FlashCardContent: React.FC<FlashCardContentProps> = ({
 }) => (
   <motion.div
     className={`absolute inset-0 w-full h-full ${isNextCard ? (hideNextCard ? 'opacity-0' : 'opacity-50') : ''}`}
-    animate={{ 
-      rotateX: isFlipped ? 180 : 0,
+    animate={{
+      rotateY: isFlipped ? 180 : 0,
       scale: isNextCard ? 0.9 : 1,
     }}
     transition={{ duration: 0.4 }}
-    style={{ transformStyle: 'preserve-3d' }}
+    style={{
+      transformStyle: 'preserve-3d',
+      WebkitTransformStyle: 'preserve-3d', // Safari
+    }}
   >
-    <Card className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)]">
+    {/* Front Side */}
+    <Card className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] front-side backface-hidden">
       <motion.div
         className="absolute inset-0 rounded-lg"
         style={{ borderWidth: 4, borderStyle: 'solid', borderColor }}
       />
-      {/* Front of the card */}
       <CardContent className="relative w-full h-full flex items-center justify-center overflow-hidden">
         <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center"
@@ -59,9 +63,16 @@ export const FlashCardContent: React.FC<FlashCardContentProps> = ({
         </motion.div>
       </CardContent>
     </Card>
-    {/* Back of the card */}
+
+    {/* Back Side */}
     {!isNextCard && (
-      <Card className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] [backface-visibility:hidden] [transform:rotateX(180deg)]">
+      <Card
+        className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] back-side backface-hidden"
+        style={{
+          transform: 'rotateY(180deg)',
+          WebkitTransform: 'rotateY(180deg)', // Safari
+        }}
+      >
         <motion.div
           className="absolute inset-0 rounded-lg"
           style={{ borderWidth: 4, borderStyle: 'solid', borderColor }}

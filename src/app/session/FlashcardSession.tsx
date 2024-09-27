@@ -159,7 +159,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
   const percentageComplete = Math.round((completedWords / totalWords) * 100);
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-[calc(100vh-32px)] bg-white">
       <div className="border-b">
         <div className="flex justify-between items-center p-4">
           <button className="text-gray-500" onClick={onExit}>

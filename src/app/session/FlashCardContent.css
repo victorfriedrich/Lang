@@ -1,0 +1,17 @@
+/* src/app/session/FlashCardContent.css */
+
+.perspective-container {
+    perspective: 1000px;
+    -webkit-perspective: 1000px; /* Safari */
+  }
+  
+  .front-side {
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+  }
+  
+  .back-side {
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+    transform: rotateY(180deg);
+  }

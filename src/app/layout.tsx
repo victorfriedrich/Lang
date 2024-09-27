@@ -29,13 +29,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100 flex`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100 flex flex-col md:flex-row`}>
         <UserProvider>
           <Sidebar
             documentName={undefined} // Pass necessary props if any
           />
 
-          <main className="flex-1">
+          <main className="flex-1 md:pt-0 pt-10"> {/* Add padding top for mobile */}
             <DemoAccountHeader />
             {children}
           </main>
