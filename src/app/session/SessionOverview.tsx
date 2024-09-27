@@ -37,7 +37,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
   }, [incorrectCount]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] bg-white"> {/* Adjusted height to account for demo header */}
+    <div className="flex flex-col min-h-screen bg-white"> {/* Changed from fixed height to min-height */}
       <div className="border-b">
         <div className="flex justify-between items-center p-4">
           <button className="text-gray-500" onClick={onExit}>
@@ -74,7 +74,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
           ))}
         </div>
 
-        <div className="space-y-3 w-full">
+        <div className="space-y-3 w-full pb-safe"> {/* Added pb-safe for additional bottom padding on mobile */}
           {incorrectCount > 0 ? (
             <>
               <button 
