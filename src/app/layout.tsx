@@ -35,7 +35,7 @@ export default function RootLayout({
             documentName={undefined} // Pass necessary props if any
           />
 
-          <main className="flex-1 md:pt-0 pt-12"> {/* Add padding top for mobile */}
+          <main className="flex-1 md:pt-0 pt-10"> {/* Add padding top for mobile */}
             <DemoAccountHeader />
             {children}
           </main>
