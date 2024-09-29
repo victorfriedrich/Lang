@@ -34,9 +34,9 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   }, [user]);
 
   const navItems = [
+    { href: '/videos', name: 'Videos', icon: Film },
     { href: '/vocabulary', name: 'Practice', icon: BookMarked },
     { href: '/progress', name: 'Words Known', icon: BarChart2 },
-    { href: '/videos', name: 'Videos', icon: Film },
     { href: '/articles', name: 'Articles', icon: BookOpen },
   ];
 

@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useContext } from 'react';
 import { UserContext } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
+import LoadingState from './LoadingState';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -12,22 +13,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireDemo =
   const router = useRouter();
 
   useEffect(() => {
+    console.log('ProtectedRoute - Loading:', loading, 'User:', user);
     if (!loading && user !== undefined) {
       if (!user) {
-        // Not logged in
+        console.log('User not authenticated. Redirecting to /get-started.');
         router.push('/get-started');
-      } else if (!requireDemo && user.isDemo) {
-        // Logged in as demo but the route requires a regular account
-        router.push('/migrate-login');
       }
     }
   }, [user, loading, router, requireDemo]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingState />;
   }
 
-  return user && (requireDemo || !user.isDemo) ? <>{children}</> : null;
+  return user ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

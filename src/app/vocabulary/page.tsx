@@ -47,9 +47,22 @@ const VocabularyLearnerWithStreak = () => {
     }
   }, [overdueWords, refreshTrigger]);
 
-  const sortedAndFilteredWords = useMemo(() => {
-    if (!topWords) return [];
-    return topWords
+  // const sortedAndFilteredWords = useMemo(() => {
+  //   if (!topWords) return [];
+  //   return topWords
+  //     .map(word => ({
+  //       ...word,
+  //       daysUntilRepeat: calculateDaysUntilRepeat(word.next_review_due_at)
+  //     }))
+  //     .filter(word =>
+  //       word.word_root.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       word.translation.toLowerCase().includes(searchTerm.toLowerCase())
+  //     );
+  // }, [topWords, searchTerm]);
+
+    const sortedAndFilteredWords = useMemo(() => {
+    if (!wordsDueToday) return [];
+    return wordsDueToday
       .map(word => ({
         ...word,
         daysUntilRepeat: calculateDaysUntilRepeat(word.next_review_due_at)
@@ -58,11 +71,12 @@ const VocabularyLearnerWithStreak = () => {
         word.word_root.toLowerCase().includes(searchTerm.toLowerCase()) ||
         word.translation.toLowerCase().includes(searchTerm.toLowerCase())
       );
-  }, [topWords, searchTerm]);
+  }, [wordsDueToday, searchTerm]);
 
   const visibleWords = useMemo(() => {
     return sortedAndFilteredWords.slice(0, visibleWordsCount);
   }, [sortedAndFilteredWords, visibleWordsCount]);
+
 
   const handleLoadMore = useCallback(() => {
     setVisibleWordsCount(prevCount => prevCount + 10);
@@ -143,7 +157,6 @@ const VocabularyLearnerWithStreak = () => {
             onLoadMore={handleLoadMore}
           />
 
-          {/* Remove the separate Load More button */}
         </div>
 
         {selectedWord && (

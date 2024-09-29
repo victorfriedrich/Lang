@@ -5,6 +5,7 @@ import "./globals.css";
 import { UserProvider } from '@/context/UserContext';
 import DemoAccountHeader from '@/app/components/DemoAccountHeader';
 import Sidebar from '@/app/components/Sidebar'; // Import the client Sidebar
+import { TutorialProvider } from "@/context/TutorialContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,14 +32,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100 flex flex-col md:flex-row`}>
         <UserProvider>
-          <Sidebar
-            documentName={undefined} // Pass necessary props if any
-          />
+          <TutorialProvider>
+            <Sidebar
+              documentName={undefined} // Pass necessary props if any
+            />
 
-          <main className="flex-1 md:pt-0 pt-12"> {/* Add padding top for mobile */}
-            <DemoAccountHeader />
-            {children}
-          </main>
+            <main className="flex-1 md:pt-0 pt-12"> {/* Add padding top for mobile */}
+              <DemoAccountHeader />
+              {children}
+            </main>
+          </TutorialProvider>
         </UserProvider>
       </body>
     </html>

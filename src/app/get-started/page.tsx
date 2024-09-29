@@ -75,7 +75,7 @@ const ProficiencyPage: React.FC = () => {
   useEffect(() => {
     console.log('user', user?.is_anonymous); // this is undefined
     if (user && user.is_anonymous) {
-      router.push('/vocabulary');
+      router.push('/videos');
     }
   }, [user, router]);
 
