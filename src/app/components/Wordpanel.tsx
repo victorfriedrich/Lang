@@ -41,7 +41,14 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
     }
   }, [missingWords, selectedWords, toggleWordSelection]);
 
-  
+  const toggleAllWords = useCallback(() => {
+    setSelectedWords(prevSelectedWords =>
+      prevSelectedWords.length === missingWords.length
+        ? []
+        : missingWords.map(word => word.id)
+    );
+  }, [missingWords]);
+
   const addToLearningSet = useCallback(async () => {
     try {
       await addWordsToUserwords(selectedWords);
@@ -81,7 +88,7 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
     <div 
       className={`
         fixed 
-        top-8 md:top-0  /* Added top-16 for mobile to avoid overlap */
+        top-10 md:top-0
         right-0 
         h-[calc(100dvh-48px)] md:h-full
         w-full 
@@ -97,9 +104,14 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
         z-50 
         ${isShiftPressed ? 'select-none' : ''}
       `}
-      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the panel
+      onClick={(e) => e.stopPropagation()}
     >
       <Header videoTitle={videoTitle} onClose={onClose} />
+      <SelectAllRow 
+        toggleAllWords={toggleAllWords} 
+        allSelected={selectedWords.length === missingWords.length}
+        totalWords={missingWords.length}
+      />
       <WordList 
         missingWords={missingWords} 
         selectedWords={selectedWords} 
@@ -188,6 +200,26 @@ const AddToLearningSetButton: React.FC<{
     >
       Add {selectedWordsCount} {selectedWordsCount === 1 ? 'item' : 'items'} to Learning Set
     </button>
+  </div>
+);
+
+const SelectAllRow: React.FC<{
+  toggleAllWords: () => void;
+  allSelected: boolean;
+  totalWords: number;
+}> = ({ toggleAllWords, allSelected, totalWords }) => (
+  <div 
+    className="flex items-center justify-between px-4 py-2 border-b cursor-pointer bg-gray-50 hover:bg-gray-100 text-sm"
+    onClick={toggleAllWords}
+  >
+    <span className="font-medium">Select All ({totalWords})</span>
+    <input 
+      type="checkbox"
+      checked={allSelected}
+      onChange={toggleAllWords}
+      className="form-checkbox h-4 w-4 text-blue-600"
+      onClick={(e) => e.stopPropagation()}
+    />
   </div>
 );
 

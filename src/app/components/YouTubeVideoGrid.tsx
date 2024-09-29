@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Loader2, X } from 'lucide-react';
 import Wordpanel from '../components/Wordpanel';
 import { Switch } from '@/components/ui/switch';
@@ -14,6 +14,46 @@ const YouTubeVideoGrid: React.FC = () => {
     const { videos, categories, isLoading, error } = useVideoRecommendations(includeCognates, selectedCategory);
     const [selectedVideo, setSelectedVideo] = useState<{ id: string, title: string } | null>(null);
     const [confirmationPopup, setConfirmationPopup] = useState<{ count: number, visible: boolean }>({ count: 0, visible: false });
+    const [loadedVideos, setLoadedVideos] = useState<Set<string>>(new Set());
+
+    const observerRef = useRef<IntersectionObserver | null>(null);
+
+    useEffect(() => {
+        observerRef.current = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const videoId = entry.target.getAttribute('data-video-id');
+                        if (videoId) {
+                            setLoadedVideos((prev) => new Set(prev).add(videoId));
+                        }
+                    }
+                });
+            },
+            { rootMargin: '200px' }
+        );
+
+        return () => {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        const observer = observerRef.current;
+        if (observer) {
+            document.querySelectorAll('.video-container').forEach((el) => {
+                observer.observe(el);
+            });
+        }
+
+        return () => {
+            if (observer) {
+                observer.disconnect();
+            }
+        };
+    }, [videos]);
 
     const handleVideoClick = (videoId: string, videoTitle: string) => {
         setSelectedVideo({ id: videoId, title: videoTitle });
@@ -76,26 +116,43 @@ const YouTubeVideoGrid: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {videos.map((video) => (
-                    <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="aspect-w-16 aspect-h-9">
-                            <iframe
-                                src={`https://www.youtube.com/embed/${video.id}`}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                                className="w-full h-full"
-                            ></iframe>
+                    <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" onClick={() => handleVideoClick(video.id, `New words in this video`)}>
+                        <div className="aspect-w-16 aspect-h-9 h-48 video-container" data-video-id={video.id}>
+                            {loadedVideos.has(video.id) ? (
+                                <iframe
+                                    src={`https://www.youtube.com/embed/${video.id}`}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    className="w-full h-full"
+                                ></iframe>
+                            ) : (
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                    <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+                                </div>
+                            )}
                         </div>
-                        <div
-                            className="p-4 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-                            onClick={() => handleVideoClick(video.id, `New words in this video`)}
-                        >
-                            <div className="text-sm text-blue-600 font-medium">
-                                {video.percentUnderstood}% understood
+                        <div className="p-4 group relative">
+                            <div>
+                                <div className="text-md font-medium">
+                                    {video.percentUnderstood}%
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    words known
+                                </div>
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                                Click to see new words
-                            </div>
+                            <button
+                                className="absolute right-4 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-black text-white rounded-md flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-800 hover:scale-105"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleVideoClick(video.id, `New words in this video`);
+                                }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" />
+                                </svg>
+                                <span>Practice</span>
+                            </button>
                         </div>
                     </div>
                 ))}
@@ -104,7 +161,7 @@ const YouTubeVideoGrid: React.FC = () => {
             {/* Side panel for new words */}
             {selectedVideo && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-20"
+                    className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
                     onClick={() => setSelectedVideo(null)}
                 >
                     <Wordpanel

@@ -20,7 +20,7 @@ const VocabularyTable: React.FC<VocabularyTableProps> = ({
 }) => (
   <div className="bg-white rounded-lg shadow mt-6">
     <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 className="text-lg font-semibold text-gray-900">Your Vocabulary</h2>
+      <h2 className="text-lg font-semibold text-gray-900">Ready for Review</h2>
       <div className="relative w-48">
         <input
           type="text"
