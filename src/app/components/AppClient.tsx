@@ -25,12 +25,12 @@ const AppClient: React.FC = () => {
   const renderContent = () => {
     switch (pathname) {
       case '/':
+        case '/ranking':
+        return <ProtectedRoute><YouTubeVideoGrid /></ProtectedRoute>;
       case '/articles':
         return <ProtectedRoute><ArticleList /></ProtectedRoute>;
       case '/parse':
         return <UrlParser />;
-      case '/ranking':
-        return <ProtectedRoute><YouTubeVideoGrid /></ProtectedRoute>;
       case '/get-started':
         return <ProficiencyPage />;
       default:
