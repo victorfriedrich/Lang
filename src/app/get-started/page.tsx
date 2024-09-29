@@ -41,12 +41,12 @@ const languageLevelIcons = [
 
 const learningPreferences: LearningPreference[] = [
   {
-    type: 'Netflix',
-    description: 'Learn the most common words used in your favorite series',
-  },
-  {
     type: 'Conversational',
     description: 'Learn the most commonly used words in spoken Spanish',
+  },
+  {
+    type: 'Netflix',
+    description: 'Learn the most common words used in your favorite series',
   },
   {
     type: 'Academic',

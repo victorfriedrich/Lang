@@ -8,7 +8,7 @@ import ArticleList from './ArticleList';
 import LanguageLevelSelector from './LanguageLevelSelector';
 import YouTubeVideoGrid from './YouTubeVideoGrid';
 import ProficiencyPage from '../get-started/page';
-
+import ProtectedRoute from './ProtectedRoute';
 const AppClient: React.FC = () => {
   const pathname = usePathname();
 
@@ -26,15 +26,15 @@ const AppClient: React.FC = () => {
     switch (pathname) {
       case '/':
       case '/articles':
-        return <ArticleList />;
+        return <ProtectedRoute><ArticleList /></ProtectedRoute>;
       case '/parse':
         return <UrlParser />;
       case '/ranking':
-        return <YouTubeVideoGrid />;
+        return <ProtectedRoute><YouTubeVideoGrid /></ProtectedRoute>;
       case '/get-started':
         return <ProficiencyPage />;
       default:
-        return <ArticleList />; // Default route
+        return <ProtectedRoute><ArticleList /></ProtectedRoute>; // Default route
     }
   };
 

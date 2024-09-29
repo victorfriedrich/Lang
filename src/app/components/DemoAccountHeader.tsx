@@ -7,15 +7,13 @@ import { useTopWords } from '@/app/hooks/useTopWords';
 
 const DemoAccountHeader: React.FC = () => {
   const { user } = useContext(UserContext);
-  const { topWords, isLoading, error } = useTopWords();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (user?.is_anonymous && !isLoading && !error) {
-      const hasDueWords = topWords.some(word => new Date(word.next_review_due_at).toDateString() !== new Date().toDateString());
-      setIsVisible(hasDueWords);
+    if (user?.is_anonymous) {
+      setIsVisible(true);
     }
-  }, [user, topWords, isLoading, error]);
+  }, [user]);
 
   if (!isVisible) {
     return null;

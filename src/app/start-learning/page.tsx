@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, FormEvent, useContext } from 'react';
+import React, { useState, useEffect, FormEvent, useContext } from 'react';
 import { supabase } from '@/lib/supabaseclient';
 import { UserContext } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
@@ -31,18 +31,17 @@ const MigrateLogin = () => {
             if (updateError) throw updateError;
 
             // Send magic link for email verification
-            const { error: signInError } = await supabase.auth.signInWithOtp({
-                email,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/auth/callback`,
-                },
-            });
+            // const { error: signInError } = await supabase.auth.signInWithOtp({
+            //     email,
+            //     options: {
+            //         emailRedirectTo: `${window.location.origin}/auth/callback`,
+            //     },
+            // });
 
-            if (signInError) throw signInError;
+            // if (signInError) throw signInError;
 
             setEmailSent(true);
             setRetryTimer(60);
-            alert('Account upgraded successfully! Please check your email to verify your account.');
         } catch (error) {
             if (error instanceof Error) {
                 alert(`Migration failed: ${error.message}`);
@@ -63,29 +62,17 @@ const MigrateLogin = () => {
         }
     };
 
-    const handleOAuthSignIn = async (provider: string) => {
-
-        setIsLoading(true);
-        try {
-            const { data, errorLink } = await supabase.auth.linkIdentity({ provider });
-            if (errorLink) {
-                alert(`Linking with ${provider} failed: ${errorLink.message}`);
-            } else {
-                alert(`Successfully linked with ${provider}`);
-            }
-
-            const { errorSignIn } = await supabase.auth.signInWithOAuth({ provider });
-            if (errorSignIn) {
-                alert(`Sign in with ${provider} failed: ${errorSignIn.message}`);
-            }
-
-        } catch (error) {
-            alert(`An error occurred: ${error.message}`);
-        } finally {
-            setIsLoading(false);
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (emailSent && retryTimer > 0) {
+            timer = setInterval(() => {
+                setRetryTimer((prev) => prev - 1);
+            }, 1000);
+        } else if (retryTimer === 0) {
+            setEmailSent(false);
         }
-
-    };
+        return () => clearInterval(timer);
+    }, [emailSent, retryTimer]);
 
     return (
         <div className="relative min-h-screen bg-gray-100 overflow-hidden">
@@ -101,7 +88,7 @@ const MigrateLogin = () => {
                 <div className="w-full max-w-md space-y-8 pb-32">
                     <div>
                         <h1 className="text-center text-4xl font-extrabold text-gray-800">
-                            Join LearnFive
+                            Join Learnfive
                         </h1>
                         <p className="mt-2 text-center text-lg text-gray-600">
                             Get access to all features
@@ -115,16 +102,16 @@ const MigrateLogin = () => {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                className="flex-grow appearance-none rounded-l-md px-3 py-2 border border-r-0 border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white bg-opacity-80"
+                                className="flex-grow appearance-none rounded-l-md px-3 py-2 border border-r-0 border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white bg-opacity-80"
                                 placeholder="Enter your email address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                             <button
                                 type="submit"
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:bg-indigo-400"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:bg-blue-400"
                                 disabled={isLoading || emailSent}
-                                style={emailSent ? { backgroundColor: '#4f46e5', filter: 'grayscale(50%)' } : {}}
+                                style={emailSent ? { backgroundColor: '#3B82F6', filter: 'grayscale(70%)' } : {}}
                             >
                                 {isLoading ? (
                                     'Sending...'
