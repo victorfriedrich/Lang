@@ -142,7 +142,7 @@ const YouTubeVideoGrid: React.FC = () => {
                                 </div>
                             </div>
                             <button
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-black text-white rounded-md flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-800 hover:scale-105"
+                                className="absolute right-4 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-black text-white rounded-md flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-gray-800 hover:scale-105"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleVideoClick(video.id, `New words in this video`);
