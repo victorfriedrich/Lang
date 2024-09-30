@@ -14,6 +14,7 @@ interface CompactWordInfoPopupProps {
   showThumbs?: boolean;
   position: { x: number, y: number };
   onAddToLearning: (wordId: number) => void;
+  rootWord?: string;
 }
 
 const CompactWordInfoPopup: React.FC<CompactWordInfoPopupProps> = ({
@@ -24,6 +25,7 @@ const CompactWordInfoPopup: React.FC<CompactWordInfoPopupProps> = ({
   showThumbs = true,
   position,
   onAddToLearning,
+  rootWord,
 }) => {
   const { wordInfo, isLoading: isLoadingWordInfo } = useWordInfo(wordId);
   const { updateFlashCardInfo } = useUpdateFlashCardInfo();
@@ -74,6 +76,7 @@ const CompactWordInfoPopup: React.FC<CompactWordInfoPopupProps> = ({
         <div className="flex justify-between items-center">
           <div>
             <p className="text-md ml-1">{translation}</p>
+            {rootWord && <p className="text-sm text-gray-500 ml-1">Root: {rootWord}</p>}
           </div>
           <div className="ml-4 flex">
             {showThumbs ? (
