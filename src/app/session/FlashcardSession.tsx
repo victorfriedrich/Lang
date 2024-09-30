@@ -160,7 +160,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
 
   return (
     <div className="flex flex-col h-[calc(100dvh-48px)] md:h-[calc(100dvh-32px)] bg-white">
-      <div className="border-b">
+      <div className="border-b mb-4">
         <div className="flex justify-between items-center p-4">
           <button className="text-gray-500" onClick={onExit}>
             <X className="h-6 w-6" />
@@ -170,23 +170,26 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
           </div>
         </div>
         <div className="w-full h-1 bg-gray-200">
-          <div 
+          <div
             className="h-full bg-blue-600"
             style={{ width: `${percentageComplete}%` }}
           />
         </div>
-        
+
       </div>
-      <p className="text-gray-500 text-sm text-center my-12 md:hidden">Swipe to go through flashcards</p>
+      <div>
+        <p className="text-gray-500 text-sm text-center mb-2">Click cards to flip them</p>
+        <p className="text-gray-500 text-sm text-center md:hidden">Swipe to go through flashcards</p>
+      </div>
 
       <div className="flex-grow flex flex-col items-center justify-center p-4">
-      
-        <div className="relative w-full max-w-md">
+
+        <div className="relative w-full max-w-xl">
           <AnimatePresence>
             {showCorrectAnimation && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.8, y: 0}}
-                animate={{ opacity: 1, scale: 1, y: -10}}
+                initial={{ opacity: 0, scale: 0.8, y: 0 }}
+                animate={{ opacity: 1, scale: 1, y: -10 }}
                 exit={{ opacity: 0, scale: 0.5, y: -6 }}
                 transition={{ duration: 0.35 }}
                 className="absolute top-0 right-0 text-green-500 z-10"
@@ -202,10 +205,10 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
                 isFlipped={false}
                 frontSide={frontSide}
                 feedback={null}
-                onFlip={() => {}}
-                onSwipe={() => {}}
+                onFlip={() => { }}
+                onSwipe={() => { }}
                 waitForNextButton={false}
-                onNext={() => {}}
+                onNext={() => { }}
                 showNextCard={false}
                 isNextCard={true}
               />

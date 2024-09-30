@@ -26,7 +26,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({
     const borderColor = props.feedback === 'correct' ? 'green' : props.feedback === 'incorrect' ? 'red' : 'transparent';
 
     return (
-        <div className={`w-full max-w-md h-64 perspective-1000 ${isNextCard ? 'pointer-events-none' : ''}`}>
+        <div className={`w-full max-w-xl h-96 perspective-1000 ${isNextCard ? 'pointer-events-none' : ''}`}>
             <FlashCardInteraction
                 isDesktop={isDesktop}
                 isFlipped={props.isFlipped}
