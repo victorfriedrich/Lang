@@ -88,7 +88,7 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
     <div 
       className={`
         fixed 
-        top-10 md:top-0
+        top-11 md:top-0
         right-0 
         h-[calc(100dvh-48px)] md:h-full
         w-full 
