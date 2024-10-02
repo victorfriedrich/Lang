@@ -41,6 +41,7 @@ export default function RootLayout({
             <main className="flex-1 md:pt-0 pt-12"> {/* Add padding top for mobile */}
               <DemoAccountHeader />
               {children}
+              <Analytics />
             </main>
           </TutorialProvider>
         </UserProvider>
