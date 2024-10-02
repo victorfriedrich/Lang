@@ -6,6 +6,7 @@ import { UserProvider } from '@/context/UserContext';
 import DemoAccountHeader from '@/app/components/DemoAccountHeader';
 import Sidebar from '@/app/components/Sidebar'; // Import the client Sidebar
 import { TutorialProvider } from "@/context/TutorialContext";
+import { Analytics } from "@vercel/analytics/react"
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
