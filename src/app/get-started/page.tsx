@@ -116,7 +116,7 @@ const ProficiencyPage: React.FC = () => {
           'Demo account created and initialized with level:',
           selectedLevel.level
         );
-        router.push('/vocabulary');
+        router.push('/videos');
       } catch (error) {
         console.error('Error creating or initializing demo account:', error);
         alert('An error occurred. Please try again.');
