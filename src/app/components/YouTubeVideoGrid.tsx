@@ -1,17 +1,15 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Wordpanel from '../components/Wordpanel';
 import { Switch } from '@/components/ui/switch';
 import { useVideoRecommendations } from '../hooks/useVideoRecommendations';
-import ProtectedRoute from '../components/ProtectedRoute';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 
 const YouTubeVideoGrid: React.FC = () => {
-    const [includeCognates, setIncludeCognates] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState<string>('All Videos');
-    const { videos, categories, isLoading, error } = useVideoRecommendations(includeCognates, selectedCategory);
+    const { videos, categories, isVideosLoading, isCategoriesLoading, error } = useVideoRecommendations(selectedCategory);
     const [selectedVideo, setSelectedVideo] = useState<{ id: string, title: string } | null>(null);
     const [confirmationPopup, setConfirmationPopup] = useState<{ count: number, visible: boolean }>({ count: 0, visible: false });
     const [loadedVideos, setLoadedVideos] = useState<Set<string>>(new Set());
@@ -71,7 +69,12 @@ const YouTubeVideoGrid: React.FC = () => {
         setConfirmationPopup(prev => ({ ...prev, visible: false }));
     };
 
-    if (isLoading) {
+    const handleCategoryChange = (category: string) => {
+        setSelectedCategory(category);
+    };
+
+    if (isCategoriesLoading) {
+        // Show loading state for categories or an initial loading state
         return (
             <div className="flex justify-center items-center h-screen">
                 <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
@@ -84,19 +87,15 @@ const YouTubeVideoGrid: React.FC = () => {
     }
 
     return (
-
         <div className="container mx-auto p-4 relative">
             <h1 className="text-2xl font-bold mb-4">Spanish Videos</h1>
-
-            {/* Add cognate toggle and category selection */}
-
 
             <div className='flex justify-between'>
                 <div className="flex flex-wrap gap-2 mb-4">
                     {categories.map((category) => (
                         <button
                             key={category.category}
-                            onClick={() => setSelectedCategory(category.category)}
+                            onClick={() => handleCategoryChange(category.category)}
                             className={`px-4 py-2 rounded ${selectedCategory === category.category ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
                         >
                             {category.category}
@@ -104,58 +103,67 @@ const YouTubeVideoGrid: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="flex items-center space-x-2 mb-4">
-                    <Switch
-                        checked={includeCognates}
-                        onCheckedChange={setIncludeCognates}
-                        id="cognate-toggle"
-                    />
-
-                </div>
+                {/* Remove the Switch component and its container */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {videos.map((video) => (
-                    <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" onClick={() => handleVideoClick(video.id, `New words in this video`)}>
-                        <div className="aspect-w-16 aspect-h-9 h-48 video-container" data-video-id={video.id}>
-                            {loadedVideos.has(video.id) ? (
-                                <iframe
-                                    src={`https://www.youtube.com/embed/${video.id}`}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                    className="w-full h-full"
-                                ></iframe>
-                            ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                    <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
-                                </div>
-                            )}
-                        </div>
-                        <div className="p-4 group relative">
-                            <div>
-                                <div className="text-md font-medium">
-                                    {video.percentUnderstood}%
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    words known
+                {isVideosLoading ? (
+                    <div className="flex justify-center items-center col-span-full">
+                        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+                    </div>
+                ) : (
+                    videos.map((video) => (
+                        <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" onClick={() => handleVideoClick(video.id, `New words in this video`)}>
+                            <div className="aspect-w-16 aspect-h-9 h-48 video-container" data-video-id={video.id}>
+                                {loadedVideos.has(video.id) ? (
+                                    <iframe
+                                        src={`https://www.youtube.com/embed/${video.id}`}
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; cc-load-policy=1; cc-lang-pref=es"
+                                        allowFullScreen
+                                        className="w-full h-full"
+                                    ></iframe>
+                                ) : (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-4 group relative">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <div className="text-md font-medium">
+                                            {video.percentUnderstood}%
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            words known
+                                        </div>
+                                    </div>
+                                    <div className="text-right md:group-hover:opacity-0 ml-auto mr-8 md:mx-0 transition-opacity duration-200">
+                                        <div className="text-md font-medium">
+                                            {video.newWords}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            new words
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="md:absolute md:right-4 md:top-1/2 md:transform md:-translate-y-1/2 px-3 py-1 bg-black text-white rounded-md flex items-center space-x-1 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-gray-800 hover:scale-105"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleVideoClick(video.id, `New words in this video`);
+                                        }}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" />
+                                        </svg>
+                                        <span>Practice</span>
+                                    </button>
                                 </div>
                             </div>
-                            <button
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-black text-white rounded-md flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-gray-800 hover:scale-105"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleVideoClick(video.id, `New words in this video`);
-                                }}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" />
-                                </svg>
-                                <span>Practice</span>
-                            </button>
                         </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
 
             {/* Side panel for new words */}
@@ -179,7 +187,6 @@ const YouTubeVideoGrid: React.FC = () => {
                 />
             )}
         </div>
-
     );
 };
 

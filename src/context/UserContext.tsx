@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseclient';
 
 interface UserProfile {
@@ -55,7 +55,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getUser();
   }, []);
 
-  const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}) => {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -71,7 +71,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return fetch(url, { ...defaultOptions, ...options });
-  };
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, fetchWithAuth, loading }}>
