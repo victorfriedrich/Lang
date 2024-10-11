@@ -12,7 +12,7 @@ export const useUpdateUserwords = () => {
         console.error('Supabase error:', error);
         throw error;
       }
-
+      console.log(data);
       return data;
     } catch (err) {
       console.error('Error adding words to userwords:', err);

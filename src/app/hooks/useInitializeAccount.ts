@@ -1,11 +1,11 @@
 import { supabase } from '@/lib/supabaseclient';
 
 export const useInitializeAccount = () => {
-  const initializeUserAccount = async (languageLevel: string, learningPreference: string) => {
+  const initializeUserAccount = async (language: string, languageLevel: string) => {
     try {
       const { data, error } = await supabase.rpc('initialize_account', {
+        _language: language.toLowerCase(),
         _language_level: languageLevel,
-        _learning_preference: learningPreference
       });
 
       if (error) {
