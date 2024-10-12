@@ -2,26 +2,20 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X } from 'lucide-react';
+import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon } from 'lucide-react';
 import { UserContext } from '@/context/UserContext'; // Import UserContext
 
 interface SidebarProps {
   documentName?: string;
 }
 
-const languageOptions = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-  { code: 'it', name: 'Italian', flag: '🇮🇹' },
-  // Add more languages as needed
-];
-
 const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const { user, language, setLanguage } = useContext(UserContext); // Access user and language context
+  const { user, language } = useContext(UserContext); // Access user and language from context
   const [isDemoVisible, setIsDemoVisible] = useState(false); // State for demo message
+  const [isLanguagePopupOpen, setIsLanguagePopupOpen] = useState(false); // State for language popup
 
   useEffect(() => {
     const storedState = localStorage.getItem('sidebar-collapsed');
@@ -45,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     { href: '/vocabulary', name: 'Practice', icon: BookMarked },
     { href: '/progress', name: 'Words Known', icon: BarChart2 },
     { href: '/articles', name: 'Articles', icon: BookOpen },
+    { href: '/login', name: 'Login', icon: LogInIcon },
   ];
 
   const handleJoinRoom = async (roomId: string) => {
@@ -55,20 +50,14 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     setIsMobileOpen(!isMobileOpen);
   }
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCode = e.target.value;
-    const selectedLanguage = languageOptions.find(
-      (lang) => lang.code === selectedCode
-    );
-    if (selectedLanguage) {
-      setLanguage(selectedLanguage);
-    }
-  };
+  const toggleLanguagePopup = () => {
+    setIsLanguagePopupOpen(!isLanguagePopupOpen);
+  }
 
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden bg-blue-700 text-white fixed top-0 left-0 right-0 z-50 flex items-center h-16">
+      <div className="md:hidden bg-blue-700 text-white fixed top-0 left-0 right-0 z-50 flex items-center">
         <button
           onClick={toggleSidebar}
           className="pl-3 py-3 rounded-md focus:outline-none"
@@ -86,15 +75,16 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
       {/* Sidebar */}
       <div
         className={`
-          sticky top-0
-          h-screen
+          fixed inset-y-0 left-0 z-40 
           transform transition-transform duration-300 ease-in-out
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:translate-x-0 
-          bg-gray-100 border-r border-gray-200
-          ${isCollapsed ? 'w-16' : 'w-60'}
-          overflow-y-auto
-          z-40
+          md:sticky md:top-0 md:translate-x-0 md:flex-shrink-0 
+          bg-gray-100 border-r border-gray-200 overflow-y-auto
+          ${isCollapsed ? 'md:w-16' : 'md:w-60'}
+          w-60 md:block
+          ${isMobileOpen ? 'block' : 'hidden'}
+          md:pt-0 pt-16
+          h-full md:h-screen
         `}
       >
         <div className="p-3 flex flex-col h-full">
@@ -106,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-1 rounded-md hover:bg-gray-200"
-              aria-label={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
               <ChevronRight
                 size={20}
@@ -127,42 +117,72 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                 }}
                 className={`flex items-center py-2 px-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out ${
                   isCollapsed
-                    ? 'justify-center'
+                    ? 'md:justify-center'
                     : 'justify-start text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 <item.icon className="h-5 w-5 text-gray-500" />
-                <span className={`ml-2 truncate ${isCollapsed ? 'hidden md:block' : 'block'}`}>{item.name}</span>
+                <span className={`ml-2 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.name}</span>
               </Link>
             ))}
           </div>
 
-          {/* Language Selector */}
-          <div className="mt-auto pt-4">
-            <label
-              htmlFor="language-selector"
-              className={`block text-gray-700 text-sm font-bold mb-2 ${
-                isCollapsed ? 'hidden md:block text-center' : ''
-              }`}
-            >
-              {isCollapsed ? language?.flag : 'Language'}
-            </label>
-            {!isCollapsed && (
-              <select
-                id="language-selector"
-                value={language?.code || ''}
-                onChange={handleLanguageChange}
-                className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          {/* Bottom Section */}
+          <div className="mt-auto p-3 border-t mt-4border-gray-200 relative">
+            <div className="flex items-center justify-between">
+              {/* Account Information */}
+              <button className="flex-1 flex flex-col items-left truncate">
+                <p className="text-sm font-medium text-gray-800">Profile</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email ? `${user.email.slice(0, 20)}...` : 'Demo Account'}</p>
+              </button>
+              {/* Language Selector */}
+              <button
+                onClick={toggleLanguagePopup}
+                className="p-2 rounded-md hover:bg-gray-200 focus:outline-none"
+                aria-label="Change Language"
               >
-                <option value="" disabled>
-                  Select Language
-                </option>
-                {languageOptions.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.flag} {lang.name}
-                  </option>
-                ))}
-              </select>
+                {language?.flag ? (
+                  <img
+                    src={`https://flagcdn.com/${language.code}.svg`}
+                    width={20}
+                    height={20}
+                    alt={`${language.flag.toLowerCase()} flag`}
+                    className="rounded-sm"
+                  />
+                ) : (
+                  <Globe size={20} />
+                )}
+              </button>
+            </div>
+            {isLanguagePopupOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsLanguagePopupOpen(false)}
+                ></div>
+                <div className="absolute bottom-12 right-0 mt-2 w-40 bg-white shadow-lg rounded-md p-2 z-50">
+                  {/* Language Options */}
+                  <div className="flex flex-col space-y-2">
+                    {[
+                      { code: 'de', name: 'German' },
+                      { code: 'es', name: 'Spanish' },
+                      { code: 'fr', name: 'French' }
+                    ].map((lang) => (
+                      <button key={lang.code} className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100">
+                        <img
+                          src={`https://flagcdn.com/${lang.code}.svg`}
+                          alt={`${lang.name} flag`}
+                          width={20}
+                          height={20}
+                          className="rounded-sm" // Slightly round the flags
+                        />
+                        <span>{lang.name}</span>
+                      </button>
+                    ))}
+                    {/* Add more language options as needed */}
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
