@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useMissingWords } from '../hooks/useMissingWords';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Eye, EyeOff } from 'lucide-react';
 import { useUpdateUserwords } from '../hooks/useUpdateUserwords';
+import { useSeenVideos } from '../hooks/useSeenVideos';
 
 interface WordpanelProps {
   videoId: string;
@@ -20,6 +21,13 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const { missingWords, isLoading, error } = useMissingWords(videoId);
   const { addWordsToUserwords } = useUpdateUserwords();
+  const { seenVideos, markVideoAsSeen } = useSeenVideos(0);
+
+  const isVideoSeen = seenVideos.includes(videoId);
+
+  const toggleVideoSeen = useCallback(async () => {
+    await markVideoAsSeen(videoId);
+  }, [videoId, markVideoAsSeen]);
 
   const toggleWordSelection = useCallback((wordId: number) => {
     setSelectedWords(prevSelectedWords =>
@@ -118,9 +126,11 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
         handleWordClick={handleWordClick} 
         toggleWordSelection={toggleWordSelection} 
       />
-      <AddToLearningSetButton 
-        selectedWordsCount={selectedWords.length} 
-        addToLearningSet={addToLearningSet} 
+      <ToggleSeenButton 
+        isVideoSeen={isVideoSeen}
+        toggleVideoSeen={toggleVideoSeen}
+        selectedWordsCount={selectedWords.length}
+        addToLearningSet={addToLearningSet}
       />
     </div>
   );
@@ -182,6 +192,38 @@ const WordItem: React.FC<{
       onClick={(e) => e.stopPropagation()}
     />
   </li>
+);
+
+const ToggleSeenButton: React.FC<{
+  isVideoSeen: boolean;
+  toggleVideoSeen: () => void;
+  selectedWordsCount: number;
+  addToLearningSet: () => void;
+}> = ({ isVideoSeen, toggleVideoSeen, selectedWordsCount, addToLearningSet }) => (
+  <div className="p-4 border-t flex items-center space-x-2">
+    <button 
+      onClick={toggleVideoSeen}
+      className={`flex items-center justify-center py-2 px-4 font-semibold rounded-md transition-colors duration-200 ${
+        isVideoSeen
+          ? 'bg-black text-white cursor-not-allowed'
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+      }`}
+    >
+      <Eye size={20} className="mr-2" />
+      Seen
+    </button>
+    <button 
+      onClick={addToLearningSet}
+      className={`flex-grow py-2 px-4 font-semibold rounded-md transition-colors duration-200 ${
+        selectedWordsCount > 0
+          ? 'bg-blue-500 text-white hover:bg-blue-600'
+          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+      }`}
+      disabled={selectedWordsCount === 0}
+    >
+      Add {selectedWordsCount} {selectedWordsCount === 1 ? 'item' : 'items'} to Learning Set
+    </button>
+  </div>
 );
 
 const AddToLearningSetButton: React.FC<{

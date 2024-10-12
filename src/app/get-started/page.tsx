@@ -102,6 +102,7 @@ const ProficiencyPage: React.FC = () => {
     if (!language.disabled) {
       setSelectedLanguage(language);
       setContextLanguage(language);
+      localStorage.setItem('app-language', JSON.stringify(language));
     }
   };
 

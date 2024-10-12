@@ -82,9 +82,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     } else {
       // TODO: Replace with actual API call to initialize language
       const defaultLanguage: LanguageOption = {
-        code: 'it',
-        name: 'Italian',
-        flag: 'it',
+        code: 'es',
+        name: 'Spanish',
+        flag: 'es',
       };
       setLanguage(defaultLanguage);
       localStorage.setItem('app-language', JSON.stringify(defaultLanguage));

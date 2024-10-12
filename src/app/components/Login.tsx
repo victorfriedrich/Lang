@@ -85,7 +85,7 @@ function Login() {
               Welcome Back!
             </h1>
             <p className="mt-2 text-center text-lg text-gray-600">
-              Already have an account? Log in.
+              Already have an account? Log in here.
             </p>
           </div>
           <form className="mt-8 space-y-6" onSubmit={handleLogin}>
@@ -103,9 +103,9 @@ function Login() {
               />
               <button
                 type="submit"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:bg-indigo-400"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:bg-blue-400"
                 disabled={isLoading || emailSent}
-                style={emailSent ? { backgroundColor: '#4f46e5', filter: 'grayscale(50%)' } : {}}
+                style={emailSent ? { backgroundColor: '#3B82F6', filter: 'grayscale(70%)' } : {}}
               >
                 {isLoading ? (
                   'Sending...'
