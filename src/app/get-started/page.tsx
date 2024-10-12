@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Earth,
   KeyRound,
@@ -14,6 +14,7 @@ import levelsData from '../levels.json';
 import { useCreateDemoAccount } from '../hooks/useCreateDemoAccount';
 import { useInitializeAccount } from '../hooks/useInitializeAccount';
 import { useRouter } from 'next/navigation';
+import { UserContext } from '@/context/UserContext';
 
 interface ProficiencyItem {
   content: string;
@@ -82,6 +83,8 @@ const ProficiencyPage: React.FC = () => {
   const router = useRouter();
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
+  const { setLanguage: setContextLanguage, language: contextLanguage } = useContext(UserContext);
+
   useEffect(() => {
     if (Array.isArray(proficiencyData)) {
       setProficiencyItems(proficiencyData as ProficiencyItem[]);
@@ -98,6 +101,7 @@ const ProficiencyPage: React.FC = () => {
   const handleLanguageSelect = (language: LanguageOption) => {
     if (!language.disabled) {
       setSelectedLanguage(language);
+      setContextLanguage(language);
     }
   };
 

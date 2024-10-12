@@ -12,7 +12,7 @@ interface Category {
   icon: string;
 }
 
-export const useVideoRecommendations = (selectedCategory: string) => {
+export const useVideoRecommendations = (selectedCategory: string, language: string) => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isVideosLoading, setIsVideosLoading] = useState(true);
@@ -24,7 +24,8 @@ export const useVideoRecommendations = (selectedCategory: string) => {
     setIsCategoriesLoading(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetchWithAuth(`${API_URL}/categories`);
+      const languageParam = `&language=${encodeURIComponent(language)}`;
+      const response = await fetchWithAuth(`${API_URL}/categories/videos?${languageParam}`);
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
@@ -43,8 +44,9 @@ export const useVideoRecommendations = (selectedCategory: string) => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const categoryParam = selectedCategory === 'All Videos' ? '' : `&category=${encodeURIComponent(selectedCategory)}`;
+      const languageParam = `&language=${encodeURIComponent(language)}`;
 
-      const response = await fetchWithAuth(`${API_URL}/recommendations/videos/?${categoryParam}`);
+      const response = await fetchWithAuth(`${API_URL}/recommendations/videos/?${categoryParam}${languageParam}`);
       if (!response.ok) {
         throw new Error('Failed to fetch recommendations');
       }
@@ -62,7 +64,7 @@ export const useVideoRecommendations = (selectedCategory: string) => {
     } finally {
       setIsVideosLoading(false);
     }
-  }, [selectedCategory, fetchWithAuth]);
+  }, [selectedCategory, language, fetchWithAuth]);
 
   useEffect(() => {
     // Fetch both categories and videos in parallel

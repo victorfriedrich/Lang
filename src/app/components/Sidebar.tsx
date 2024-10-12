@@ -9,11 +9,18 @@ interface SidebarProps {
   documentName?: string;
 }
 
+const languageOptions = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
+  { code: 'it', name: 'Italian', flag: '🇮🇹' },
+  // Add more languages as needed
+];
+
 const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const { user } = useContext(UserContext); // Access user context
+  const { user, language, setLanguage } = useContext(UserContext); // Access user and language context
   const [isDemoVisible, setIsDemoVisible] = useState(false); // State for demo message
 
   useEffect(() => {
@@ -48,10 +55,20 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     setIsMobileOpen(!isMobileOpen);
   }
 
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCode = e.target.value;
+    const selectedLanguage = languageOptions.find(
+      (lang) => lang.code === selectedCode
+    );
+    if (selectedLanguage) {
+      setLanguage(selectedLanguage);
+    }
+  };
+
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden bg-blue-700 text-white fixed top-0 left-0 right-0 z-50 flex items-center">
+      <div className="md:hidden bg-blue-700 text-white fixed top-0 left-0 right-0 z-50 flex items-center h-16">
         <button
           onClick={toggleSidebar}
           className="pl-3 py-3 rounded-md focus:outline-none"
@@ -69,15 +86,15 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
       {/* Sidebar */}
       <div
         className={`
-          fixed inset-y-0 left-0 z-40 
+          sticky top-0
+          h-screen
           transform transition-transform duration-300 ease-in-out
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:relative md:translate-x-0 md:flex-shrink-0 
-          bg-gray-100 border-r border-gray-200 overflow-y-auto
-          ${isCollapsed ? 'md:w-16' : 'md:w-60'}
-          w-60 md:block
-          ${isMobileOpen ? 'block' : 'hidden'}
-          md:pt-0 pt-16
+          md:translate-x-0 
+          bg-gray-100 border-r border-gray-200
+          ${isCollapsed ? 'w-16' : 'w-60'}
+          overflow-y-auto
+          z-40
         `}
       >
         <div className="p-3 flex flex-col h-full">
@@ -89,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-1 rounded-md hover:bg-gray-200"
-              aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+              aria-label={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
               <ChevronRight
                 size={20}
@@ -110,14 +127,43 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                 }}
                 className={`flex items-center py-2 px-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out ${
                   isCollapsed
-                    ? 'md:justify-center'
+                    ? 'justify-center'
                     : 'justify-start text-gray-800 hover:bg-gray-200'
                 }`}
               >
                 <item.icon className="h-5 w-5 text-gray-500" />
-                <span className={`ml-2 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.name}</span>
+                <span className={`ml-2 truncate ${isCollapsed ? 'hidden md:block' : 'block'}`}>{item.name}</span>
               </Link>
             ))}
+          </div>
+
+          {/* Language Selector */}
+          <div className="mt-auto pt-4">
+            <label
+              htmlFor="language-selector"
+              className={`block text-gray-700 text-sm font-bold mb-2 ${
+                isCollapsed ? 'hidden md:block text-center' : ''
+              }`}
+            >
+              {isCollapsed ? language?.flag : 'Language'}
+            </label>
+            {!isCollapsed && (
+              <select
+                id="language-selector"
+                value={language?.code || ''}
+                onChange={handleLanguageChange}
+                className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select Language
+                </option>
+                {languageOptions.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
       </div>

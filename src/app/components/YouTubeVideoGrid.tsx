@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Loader2 } from 'lucide-react';
 import Wordpanel from '../components/Wordpanel';
 import { Switch } from '@/components/ui/switch';
 import { useVideoRecommendations } from '../hooks/useVideoRecommendations';
 import ConfirmationPopup from '../components/ConfirmationPopup';
+import { UserContext } from '@/context/UserContext';
 
 const YouTubeVideoGrid: React.FC = () => {
+    const { language } = useContext(UserContext); // Access language from UserContext
     const [selectedCategory, setSelectedCategory] = useState<string>('All Videos');
-    const { videos, categories, isVideosLoading, isCategoriesLoading, error } = useVideoRecommendations(selectedCategory);
+    const { videos, categories, isVideosLoading, isCategoriesLoading, error } = useVideoRecommendations(selectedCategory, language?.code || 'spanish');
     const [selectedVideo, setSelectedVideo] = useState<{ id: string, title: string } | null>(null);
     const [confirmationPopup, setConfirmationPopup] = useState<{ count: number, visible: boolean }>({ count: 0, visible: false });
     const [loadedVideos, setLoadedVideos] = useState<Set<string>>(new Set());
@@ -88,7 +90,7 @@ const YouTubeVideoGrid: React.FC = () => {
 
     return (
         <div className="container mx-auto p-4 relative">
-            <h1 className="text-2xl font-bold mb-4">Spanish Videos</h1>
+            <h1 className="text-2xl font-bold mb-4">Videos</h1>
 
             <div className='flex justify-between'>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -103,7 +105,7 @@ const YouTubeVideoGrid: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Remove the Switch component and its container */}
+                {/* Language selection is now handled by UserContext */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
