@@ -1,10 +1,9 @@
 "use client"
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useUnseenWords } from '../hooks/useUnseenWords';
 import { useFetchTotalWordsKnown } from '../hooks/useFetchTotalWordsKnown';
 import { useUniqueLearned } from '../hooks/useUniqueLearned';
-import { useRecallEfficiency } from '../hooks/useRecallEfficiency';
 import { useWordsKnownByDate } from '../hooks/useWordsKnownByDate';
 import { Line } from 'react-chartjs-2';
 import {
@@ -22,6 +21,7 @@ import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import NewWordsTable from '../components/NewWordsTable';
 import ProgressBar from '../components/ProgressBar'; // New component for progress bar
+import KnownWords from '../components/KnownWords';
 
 ChartJS.register(
   CategoryScale,
@@ -34,11 +34,33 @@ ChartJS.register(
 );
 
 const ProgressPage = () => {
+  const [selectedView, setSelectedView] = useState('editVocabulary');
+  const [underlineStyle, setUnderlineStyle] = useState({});
+  const editRef = useRef(null);
+  const addRef = useRef(null);
+
   const { unseenWords, isLoading: unseenLoading, error: unseenError } = useUnseenWords();
   const { totalWordsKnown, isLoading: totalLoading, error: totalError } = useFetchTotalWordsKnown();
   const { uniqueLearned, isLoading: uniqueLoading, error: uniqueError } = useUniqueLearned();
-  const { recallEfficiency, isLoading: recallLoading, error: recallError } = useRecallEfficiency();
   const { wordsKnownData, isLoading: wordsKnownLoading, error: wordsKnownError } = useWordsKnownByDate();
+
+  useEffect(() => {
+    const updateUnderline = () => {
+      const targetRef = selectedView === 'editVocabulary' ? editRef : addRef;
+      if (targetRef.current) {
+        const { offsetLeft, offsetWidth } = targetRef.current;
+        setUnderlineStyle({
+          left: `${offsetLeft}px`,
+          width: `${offsetWidth}px`,
+          transition: 'all 0.3s ease-in-out',
+        });
+      }
+    };
+
+    updateUnderline();
+    window.addEventListener('resize', updateUnderline);
+    return () => window.removeEventListener('resize', updateUnderline);
+  }, [selectedView]);
 
   const chartData = useMemo(() => {
     const labels = wordsKnownData.map(item => item.date);
@@ -63,9 +85,10 @@ const ProgressPage = () => {
         {
           label: 'Words Known',
           data: uniqueData,
+          
           fill: true,
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(60, 130, 250, 0.2)',
+          borderColor: 'rgb(60, 130, 250)',
           tension: 0,
         },
       ],
@@ -74,6 +97,8 @@ const ProgressPage = () => {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
     plugins: {
       legend: {
         display: false,
@@ -82,15 +107,44 @@ const ProgressPage = () => {
         display: false,
         text: 'Your Learning Progress',
       },
+      
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          stepSize: 1,
+          stepSize: 2,
           precision: 0,
+          font: {
+            size: 14
+          }
+        },
+        grid: {
+          drawBorder: false,
         },
       },
+      x: {
+        ticks: {
+          font: {
+            size: 14
+          },
+          maxRotation: 0,
+          autoSkip: false,
+          padding: 10,
+          align: 'inner',
+        },
+        grid: {
+          drawBorder: false,
+        },
+      }
+    },
+    layout: {
+      padding: {
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: -10
+      }
     },
   };
 
@@ -98,19 +152,19 @@ const ProgressPage = () => {
     console.log('Word added to vocabulary');
   };
 
-  if (unseenLoading || totalLoading || uniqueLoading || recallLoading || wordsKnownLoading) return <LoadingState />;
-  if (unseenError || totalError || uniqueError || recallError || wordsKnownError) return <ErrorState message={unseenError || totalError || uniqueError || recallError || wordsKnownError || 'An error occurred'} />;
+  if (unseenLoading || totalLoading || uniqueLoading || wordsKnownLoading) return <LoadingState />;
+  if (unseenError || totalError || uniqueError || wordsKnownError) return <ErrorState message={unseenError || totalError || uniqueError || wordsKnownError || 'An error occurred'} />;
 
   return (
     <ProtectedRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold mb-6">Your Learning Progress</h1>
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="lg:w-2/3 bg-white p-4 rounded-lg shadow">
-            <h2 className="text-2xl font-semibold mb-4">Words Learned Over Time</h2>
+        <div className="flex flex-col lg:flex-row gap-8 mb-8">
+          <div className="lg:w-1/2 bg-white p-4 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Words Learned Over Time</h2>
             <Line data={chartData} options={chartOptions} />
           </div>
-          <div className="lg:w-1/3 space-y-4">
+          <div className="lg:w-1/2 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-2">Total Words Known</h2>
               <p className="text-3xl mb-2 font-bold text-blue-600">{totalWordsKnown}</p>
@@ -121,16 +175,50 @@ const ProgressPage = () => {
               <p className="text-3xl mb-2 font-bold text-blue-600 ">{uniqueLearned}</p>
               <ProgressBar value={uniqueLearned} max={75} /> {/* Example progress bar */}
             </div>
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-2">Learning Efficiency</h2>
-              <p className="text-3xl font-bold text-blue-600">
-                {recallEfficiency !== null ? `${Math.round(recallEfficiency)}%` : 'N/A'}
-              </p>
-            </div>
           </div>
         </div>
+        {/* New section with side-by-side options above the table */}
+        <div className="relative bg-white rounded-t-md py-2">
+          <div className="flex space-x-8">
+            <button
+              ref={editRef}
+              className={`py-2 px-4 font-semibold ${
+                selectedView === 'editVocabulary'
+                  ? 'text-blue-600 '
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+              onClick={() => setSelectedView('editVocabulary')}
+            >
+              Edit Vocabulary
+            </button>
+            <button
+              ref={addRef}
+              className={`py-2 px-4 font-semibold ${
+                selectedView === 'addNewWords'
+                  ? 'text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+              onClick={() => setSelectedView('addNewWords')}
+            >
+              Add New Words
+            </button>
+          </div>
+          <div
+            className="absolute bottom-0 h-0.5 bg-blue-600"
+            style={underlineStyle}
+          />
+        </div>
 
-        <NewWordsTable words={unseenWords} onWordAdded={handleWordAdded} />
+        {/* Table with conditional rendering based on selection */}
+        <div className="border border-gray-200">
+          <div>
+            {selectedView === 'editVocabulary' ? (
+              <KnownWords />
+            ) : (
+              <NewWordsTable words={unseenWords} onWordAdded={handleWordAdded} />
+            )}
+          </div>
+        </div>
       </div>
     </ProtectedRoute>
   );

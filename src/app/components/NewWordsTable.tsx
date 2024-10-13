@@ -40,13 +40,10 @@ const NewWordsTable: React.FC<NewWordsTableProps> = ({ words: initialWords, onWo
   };
 
   return (
-    <div className="mt-8 bg-white rounded-lg shadow">
+    <div className="bg-white rounded-lg shadow">
       {showConfirmation && (
         <ConfirmationPopup count={addedCount} onClose={handleCloseConfirmation} />
       )}
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">New Words to Learn</h2>
-      </div>
       <div className="overflow-x-auto">
         <table className="w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
