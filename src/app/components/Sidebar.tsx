@@ -50,6 +50,15 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     setIsMobileOpen(!isMobileOpen);
   }
 
+  const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isLanguagePopupOpen) {
+      setIsLanguagePopupOpen(false);
+    }
+    if (isMobileOpen) {
+      setIsMobileOpen(false);
+    }
+  }
+
   const toggleLanguagePopup = () => {
     setIsLanguagePopupOpen(!isLanguagePopupOpen);
   }
@@ -189,10 +198,10 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
       </div>
 
       {/* Overlay */}
-      {isMobileOpen && (
+      {(isMobileOpen || isLanguagePopupOpen) && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={toggleSidebar}
+          className="fixed inset-0 bg-black bg-opacity-50 md:bg-opacity-0 z-30"
+          onClick={handleOutsideClick}
           aria-hidden="true"
         ></div>
       )}

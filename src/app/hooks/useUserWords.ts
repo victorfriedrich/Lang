@@ -8,68 +8,100 @@ interface Word {
   status: string;
 }
 
-const useUserWords = (pageSize = 10) => {
+interface UseUserWordsOptions {
+  pageSize?: number;
+  orderDirection?: 'ASC' | 'DESC';
+  searchTerm?: string;
+}
+
+const useUserWords = ({
+  pageSize = 20,
+  orderDirection = 'ASC',
+  searchTerm = '',
+}: UseUserWordsOptions = {}) => {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Using refs to store mutable values
+  // Refs to store mutable values without causing re-renders
   const lastFetchedIdRef = useRef<number | null>(null);
   const hasMoreRef = useRef(hasMore);
   const loadingRef = useRef(loading);
 
   // Update refs whenever the state changes
   useEffect(() => {
-    lastFetchedIdRef.current = words.length > 0 ? words[words.length - 1].word_id : null;
-  }, [words]);
-
-  useEffect(() => {
     hasMoreRef.current = hasMore;
   }, [hasMore]);
 
-  // Remove this useEffect as we'll manage loadingRef directly
-  // useEffect(() => {
-  //   loadingRef.current = loading;
-  // }, [loading]);
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   const fetchWords = useCallback(async () => {
+    // Prevent fetching if already loading or no more data
     if (loadingRef.current || !hasMoreRef.current) return;
 
-    // **Immediately set loadingRef.current to true**
-    loadingRef.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase.rpc('get_user_words_with_tests', {
+      const { data, error: fetchError } = await supabase.rpc('get_user_words_with_tests', {
         cursor_word_id: lastFetchedIdRef.current || 0,
         page_size: pageSize,
+        order_direction: orderDirection,
+        search_term: searchTerm,
       });
+
       console.log(data);
-      if (error) {
-        throw error;
+
+      if (fetchError) {
+        throw fetchError;
       }
 
+      if (!data || data.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      // Determine if fewer items were returned than pageSize, indicating no more data
       if (data.length < pageSize) {
         setHasMore(false);
       }
 
-      setWords((prevWords) => [...prevWords, ...data] as Word[]);
+      // Update the lastFetchedIdRef based on the order direction
+      if (data.length > 0) {
+        lastFetchedIdRef.current =
+          orderDirection === 'ASC'
+            ? data[data.length - 1].word_id
+            : data[0].word_id;
+      }
+
+      setWords((prevWords) => {
+        // Avoid duplicates by checking existing word_ids
+        const existingWordIds = new Set(prevWords.map((word) => word.word_id));
+        const filteredNewWords = data.filter((newWord: Word) => !existingWordIds.has(newWord.word_id));
+        return [...prevWords, ...filteredNewWords];
+      });
     } catch (err) {
       console.error('Error fetching words:', err);
       setError('Failed to fetch words.');
     } finally {
-      // **Set loadingRef.current to false before updating state**
-      loadingRef.current = false;
       setLoading(false);
     }
-  }, [pageSize]);
+  }, [pageSize, orderDirection, searchTerm]);
 
-  // Initial fetch on mount
+  // Reset words when orderDirection or searchTerm changes
   useEffect(() => {
+    // Reset state
+    setWords([]);
+    lastFetchedIdRef.current = null;
+    setHasMore(true);
+    setError(null);
+
+    // Fetch the first page with new parameters
     fetchWords();
-  }, [fetchWords]);
+  }, [fetchWords, orderDirection, searchTerm]);
 
   return { words, fetchWords, loading, hasMore, error };
 };
