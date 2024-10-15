@@ -90,7 +90,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       localStorage.setItem('app-language', JSON.stringify(defaultLanguage));
     }
   }, []);
-
+  
   const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}) => {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
@@ -99,15 +99,21 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       throw new Error('No authentication token available');
     }
 
-    const defaultOptions: RequestInit = {
+    const defaultHeaders = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+
+    const mergedOptions: RequestInit = {
+      ...options,
       headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        ...defaultHeaders,
+        ...(options.headers as Record<string, string>),
       },
     };
 
-    return fetch(url, { ...defaultOptions, ...options });
-  }, []);
+    return fetch(url, mergedOptions);
+  }, [supabase.auth]);
 
   const handleSetLanguage = (newLanguage: LanguageOption) => {
     setLanguage(newLanguage);

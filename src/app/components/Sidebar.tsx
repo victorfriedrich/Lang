@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon } from 'lucide-react';
+import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon, LogOutIcon } from 'lucide-react';
 import { UserContext } from '@/context/UserContext'; // Import UserContext
 
 interface SidebarProps {
@@ -16,6 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   const { user, language } = useContext(UserContext); // Access user and language from context
   const [isDemoVisible, setIsDemoVisible] = useState(false); // State for demo message
   const [isLanguagePopupOpen, setIsLanguagePopupOpen] = useState(false); // State for language popup
+  const [isAccountPopupOpen, setIsAccountPopupOpen] = useState(false);
 
   useEffect(() => {
     const storedState = localStorage.getItem('sidebar-collapsed');
@@ -42,26 +43,31 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     { href: '/login', name: 'Login', icon: LogInIcon },
   ];
 
-  const handleJoinRoom = async (roomId: string) => {
-    console.log(roomId);
-  }
 
   const toggleSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
   }
 
-  const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isLanguagePopupOpen) {
-      setIsLanguagePopupOpen(false);
-    }
-    if (isMobileOpen) {
-      setIsMobileOpen(false);
-    }
-  }
+  const handleOutsideClick = () => {
+    setIsMobileOpen(false);
+    setIsLanguagePopupOpen(false);
+    setIsAccountPopupOpen(false);
+  };
 
   const toggleLanguagePopup = () => {
     setIsLanguagePopupOpen(!isLanguagePopupOpen);
-  }
+    setIsAccountPopupOpen(false);
+  };
+
+  const toggleAccountPopup = () => {
+    setIsAccountPopupOpen(!isAccountPopupOpen);
+    setIsLanguagePopupOpen(false);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsAccountPopupOpen(false);
+  };
 
   return (
     <>
@@ -121,14 +127,12 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                 href={item.href}
                 key={item.href}
                 onClick={() => {
-                  handleJoinRoom(item.href);
                   setIsMobileOpen(false);
                 }}
-                className={`flex items-center py-2 px-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out ${
-                  isCollapsed
+                className={`flex items-center py-2 px-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out ${isCollapsed
                     ? 'md:justify-center'
                     : 'justify-start text-gray-800 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 <item.icon className="h-5 w-5 text-gray-500" />
                 <span className={`ml-2 truncate ${isCollapsed ? 'md:hidden' : ''}`}>{item.name}</span>
@@ -137,10 +141,13 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
           </div>
 
           {/* Bottom Section */}
-          <div className="mt-auto p-3 border-t mt-4border-gray-200 relative">
+          <div className="mt-auto p-3 border-t mt-4 border-gray-200 relative">
             <div className="flex items-center justify-between">
               {/* Account Information */}
-              <button className="flex-1 flex flex-col items-left truncate">
+              <button
+                className="flex-1 flex flex-col items-left truncate"
+                onClick={toggleAccountPopup}
+              >
                 <p className="text-sm font-medium text-gray-800">Profile</p>
                 <p className="text-xs text-gray-500 truncate">{user?.email ? `${user.email.slice(0, 20)}...` : 'Demo Account'}</p>
               </button>
@@ -165,7 +172,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
             </div>
             {isLanguagePopupOpen && (
               <>
-                <div 
+                <div
                   className="fixed inset-0 z-40"
                   onClick={() => setIsLanguagePopupOpen(false)}
                 ></div>
@@ -183,12 +190,32 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                           alt={`${lang.name} flag`}
                           width={20}
                           height={20}
-                          className="rounded-sm" // Slightly round the flags
+                          className="rounded-sm"
                         />
                         <span>{lang.name}</span>
                       </button>
                     ))}
-                    {/* Add more language options as needed */}
+                  </div>
+                </div>
+              </>
+            )}
+            {isAccountPopupOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsAccountPopupOpen(false)}
+                ></div>
+                <div className="absolute bottom-12 left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 z-50">
+                  <div className="flex flex-col space-y-2">
+                    {/* <p className="text-sm font-medium text-gray-800">Account</p>
+                    <p className="text-xs text-gray-500 truncate">{user?.email || 'Demo Account'}</p> */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-2 w-full px-2 py-1 text-gray-600 hover:bg-gray-100"
+                    >
+                      <LogOutIcon size={14} />
+                      <span>Log out</span>
+                    </button>
                   </div>
                 </div>
               </>
@@ -198,7 +225,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
       </div>
 
       {/* Overlay */}
-      {(isMobileOpen || isLanguagePopupOpen) && (
+      {(isMobileOpen || isLanguagePopupOpen || isAccountPopupOpen) && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 md:bg-opacity-0 z-30"
           onClick={handleOutsideClick}

@@ -8,18 +8,31 @@ interface MissingWord {
   translation: string;
 }
 
+interface MissingWordsRequest {
+  language_code: string;
+}
+
 export const useMissingWords = (videoId: string) => {
   const [missingWords, setMissingWords] = useState<MissingWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { fetchWithAuth } = useContext(UserContext);
+  const { fetchWithAuth, language } = useContext(UserContext);
 
   useEffect(() => {
     const fetchMissingWords = async () => {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        // Prepare the request body
+        const requestBody: MissingWordsRequest = {
+          language_code: language?.code || 'es' // Default to 'en' if language code is not available
+        };
+
         const response = await fetchWithAuth(`${API_URL}/api/videos/${videoId}/missing-words`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -58,8 +71,7 @@ export const useMissingWords = (videoId: string) => {
     };
 
     fetchMissingWords();
-  }, [videoId, fetchWithAuth]);
+  }, [videoId, fetchWithAuth, language]);
 
   return { missingWords, isLoading, error };
 };
-
