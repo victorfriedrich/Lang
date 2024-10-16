@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon, LogOutIcon } from 'lucide-react';
 import { UserContext } from '@/context/UserContext'; // Import UserContext
+import { supabase } from '@/lib/supabaseclient';
 
 interface SidebarProps {
   documentName?: string;
@@ -66,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    
     setIsAccountPopupOpen(false);
   };
 
