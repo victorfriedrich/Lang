@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon, LogOutIcon } from 'lucide-react';
-import { UserContext } from '@/context/UserContext'; // Import UserContext
+import { UserContext, LanguageOption } from '@/context/UserContext'; // Import UserContext
 import { supabase } from '@/lib/supabaseclient';
 
 interface SidebarProps {
@@ -14,7 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const { user, language } = useContext(UserContext); // Access user and language from context
+  const { user, language, setLanguage } = useContext(UserContext); // Access user and language from context
   const [isDemoVisible, setIsDemoVisible] = useState(false); // State for demo message
   const [isLanguagePopupOpen, setIsLanguagePopupOpen] = useState(false); // State for language popup
   const [isAccountPopupOpen, setIsAccountPopupOpen] = useState(false);
@@ -44,6 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     { href: '/login', name: 'Login', icon: LogInIcon },
   ];
 
+  const languages: LanguageOption[] = [
+    { code: 'de', name: 'German', flag: 'de' },
+    { code: 'es', name: 'Spanish', flag: 'es' },
+    { code: 'it', name: 'Italian', flag: 'it' }
+  ];
 
   const toggleSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
@@ -67,8 +72,13 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    
+
     setIsAccountPopupOpen(false);
+  };
+
+  const handleLanguageChange = (newLanguage: LanguageOption) => {
+    setLanguage(newLanguage);
+    setIsLanguagePopupOpen(false);
   };
 
   return (
@@ -132,8 +142,8 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                   setIsMobileOpen(false);
                 }}
                 className={`flex items-center py-2 px-2 text-sm font-medium rounded-md transition-colors duration-150 ease-in-out ${isCollapsed
-                    ? 'md:justify-center'
-                    : 'justify-start text-gray-800 hover:bg-gray-200'
+                  ? 'md:justify-center'
+                  : 'justify-start text-gray-800 hover:bg-gray-200'
                   }`}
               >
                 <item.icon className="h-5 w-5 text-gray-500" />
@@ -181,12 +191,12 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                 <div className="absolute bottom-12 right-0 mt-2 w-40 bg-white shadow-lg rounded-md p-2 z-50">
                   {/* Language Options */}
                   <div className="flex flex-col space-y-2">
-                    {[
-                      { code: 'de', name: 'German' },
-                      { code: 'es', name: 'Spanish' },
-                      { code: 'fr', name: 'French' }
-                    ].map((lang) => (
-                      <button key={lang.code} className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100"
+                        onClick={() => handleLanguageChange(lang)}
+                      >
                         <img
                           src={`https://flagcdn.com/${lang.code}.svg`}
                           alt={`${lang.name} flag`}

@@ -16,7 +16,7 @@ interface UserProfile {
   // Add other profile fields as needed
 }
 
-interface LanguageOption {
+export interface LanguageOption {
   code: string;
   name: string;
   flag: string;
