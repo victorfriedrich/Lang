@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Loader2 } from 'lucide-react';
 import Wordpanel from '../components/Wordpanel';
-import { Switch } from '@/components/ui/switch';
 import { useVideoRecommendations } from '../hooks/useVideoRecommendations';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { UserContext } from '@/context/UserContext';
@@ -104,8 +103,6 @@ const YouTubeVideoGrid: React.FC = () => {
                         </button>
                     ))}
                 </div>
-
-                {/* Language selection is now handled by UserContext */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -126,9 +123,13 @@ const YouTubeVideoGrid: React.FC = () => {
                                         className="w-full h-full"
                                     ></iframe>
                                 ) : (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
-                                    </div>
+                                    <img
+                                        src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
+                                        alt="Video Thumbnail"
+                                        className="w-full h-full object-cover"
+                                        onClick={() => setLoadedVideos((prev) => new Set(prev).add(video.id))}
+                                        style={{ cursor: 'pointer' }}
+                                    />
                                 )}
                             </div>
                             <div className="p-4 group relative">
