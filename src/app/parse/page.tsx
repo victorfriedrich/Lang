@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Loader2, FileText, Youtube } from 'lucide-react';
+import { UserContext } from '@/context/UserContext';
 
 interface ParsedResult {
   message: string;
@@ -15,6 +16,7 @@ const UrlParser: React.FC = () => {
   const [success, setSuccess] = useState<string>('');
   const [inputMode, setInputMode] = useState<'text' | 'video'>('text');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { language } = useContext(UserContext)
 
   const isValidYoutubeUrl = (url: string): boolean => {
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
@@ -63,7 +65,7 @@ const UrlParser: React.FC = () => {
       const parseResponse = await fetch(`${API_URL}/parse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToSend }),
+        body: JSON.stringify({ text: textToSend, language: language?.name }),
       });
 
       if (!parseResponse.ok) throw new Error('Failed to parse text');
