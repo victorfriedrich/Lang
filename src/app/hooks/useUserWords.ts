@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { supabase } from '@/lib/supabaseclient';
+import { UserContext } from '@/context/UserContext';
 
 interface Word {
   word_id: number;
@@ -23,6 +24,7 @@ const useUserWords = ({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { language } = useContext(UserContext)
 
   // Refs to store mutable values without causing re-renders
   const lastFetchedIdRef = useRef<number | null>(null);
@@ -39,6 +41,7 @@ const useUserWords = ({
   }, [loading]);
 
   const fetchWords = useCallback(async () => {
+    console.log(language?.name)
     // Prevent fetching if already loading or no more data
     if (loadingRef.current || !hasMoreRef.current) return;
 
@@ -51,6 +54,7 @@ const useUserWords = ({
         page_size: pageSize,
         order_direction: orderDirection,
         search_term: searchTerm,
+        word_language: language?.name.toLowerCase()
       });
 
       console.log(data);

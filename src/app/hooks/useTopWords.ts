@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { supabase } from '../../lib/supabaseclient';
+import { UserContext } from '@/context/UserContext';
 
 interface TopWord {
   word_id: number;
@@ -12,13 +13,16 @@ export const useTopWords = (refreshTrigger: number) => {
   const [topWords, setTopWords] = useState<TopWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { language } = useContext(UserContext)
 
   useEffect(() => {
     const fetchTopWords = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const { data, error } = await supabase.rpc('get_top_words_by_due_date');
+        const { data, error } = await supabase.rpc('get_user_words', {
+          language_filter: language?.name.toLowerCase()
+        });
 
         if (error) {
           console.error('Supabase error:', error);

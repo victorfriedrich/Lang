@@ -2,29 +2,22 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Head from 'next/head';
-import { Play } from 'lucide-react';
 import { FlashcardSession } from '../session/FlashcardSession';
 import { ModeSelection } from '../session/ModeSelection';
 import { useOverdueWords } from '../hooks/useOverdueWords';
 import { useTopWords } from '../hooks/useTopWords';
 import { useStreakData } from '../hooks/useStreakData';
 import WordInfoPopup from '../components/WordInfoPopup';
-import Tooltip from '../components/Tooltip';
-import { StreakIndicator } from '../components/StreakIndicator';
-import { StreakCounter } from '../components/StreakCounter';
-import { calculateDaysUntilRepeat, getWordsDueToday, generateStreakData } from '../utils/dateUtils';
-import { useRouter } from 'next/navigation';
+import { calculateDaysUntilRepeat, getWordsDueToday } from '../utils/dateUtils';
 
 import Header from '../components/VocabHeader';
 import ReviewSection from '../components/ReviewSection';
 import StreakDetails from '../components/StreakDetails';
 import VocabularyTable from '../components/VocabularyTable';
-import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const VocabularyLearnerWithStreak = () => {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [showSession, setShowSession] = useState(false);
   const [sessionMode, setSessionMode] = useState<'flashcard' | 'writing'>('flashcard');

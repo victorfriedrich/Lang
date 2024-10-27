@@ -12,6 +12,7 @@ export const useWordsKnownByDate = () => {
   const [wordsKnownData, setWordsKnownData] = useState<WordsKnownData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { language } = useContext(UserContext)
 
   useEffect(() => {
     if (user) {
@@ -24,7 +25,9 @@ export const useWordsKnownByDate = () => {
     setError(null);
 
     try {
-      const { data, error } = await supabase.rpc('words_known_by_date');
+      const { data, error } = await supabase.rpc('words_known_by_date', {
+        language_filter: language?.name.toLowerCase()
+      });
 
       if (error) throw error;
 

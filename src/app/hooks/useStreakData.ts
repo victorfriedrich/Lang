@@ -14,6 +14,7 @@ export const useStreakData = (refreshTrigger: number) => {
   const [highestStreak, setHighestStreak] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { language } = useContext(UserContext)
 
   useEffect(() => {
     if (user) {
@@ -26,7 +27,9 @@ export const useStreakData = (refreshTrigger: number) => {
     setError(null);
 
     try {
-      const { data, error } = await supabase.rpc('get_streak_data');
+      const { data, error } = await supabase.rpc('get_revision_counts_by_language', {
+        language_filter: language?.name.toLowerCase()
+      });
 
       if (error) throw error;
 

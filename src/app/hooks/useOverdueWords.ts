@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { supabase } from '@/lib/supabaseclient';
+import { UserContext } from '@/context/UserContext';
 
 interface OverdueWord {
   word_id: number;
@@ -12,13 +13,16 @@ export const useOverdueWords = (refreshTrigger: number) => {
   const [overdueWords, setOverdueWords] = useState<OverdueWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { language } = useContext(UserContext)
 
   useEffect(() => {
     const fetchOverdueWords = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const { data, error } = await supabase.rpc('get_overdue_words');
+        const { data, error } = await supabase.rpc('get_overdue_words', {
+          language_filter: language?.name.toLowerCase()
+        });
 
         if (error) {
           console.error('Supabase error:', error);
