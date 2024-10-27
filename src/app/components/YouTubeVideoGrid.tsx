@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Loader2 } from 'lucide-react';
 import Wordpanel from '../components/Wordpanel';
+import { Switch } from '@/components/ui/switch';
 import { useVideoRecommendations } from '../hooks/useVideoRecommendations';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { UserContext } from '@/context/UserContext';
@@ -103,6 +104,8 @@ const YouTubeVideoGrid: React.FC = () => {
                         </button>
                     ))}
                 </div>
+
+                {/* Language selection is now handled by UserContext */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -112,7 +115,7 @@ const YouTubeVideoGrid: React.FC = () => {
                     </div>
                 ) : (
                     videos.map((video) => (
-                        <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" >
+                        <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" onClick={() => handleVideoClick(video.id, `New words in this video`)}>
                             <div className="aspect-w-16 aspect-h-9 h-48 video-container" data-video-id={video.id}>
                                 {loadedVideos.has(video.id) ? (
                                     <iframe
@@ -123,16 +126,11 @@ const YouTubeVideoGrid: React.FC = () => {
                                         className="w-full h-full"
                                     ></iframe>
                                 ) : (
-                                    <img
-                                        src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
-                                        alt="Video Thumbnail"
-                                        className="w-full h-full object-cover"
-                                        onClick={() => setLoadedVideos((prev) => new Set(prev).add(video.id))}
-                                        style={{ cursor: 'pointer' }}
-                                    />
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+                                    </div>
                                 )}
                             </div>
-                            <p className="text-sm font-medium px-4 pt-4 mb-2 line-clamp-2">{video.title}...</p>
                             <div className="p-4 group relative">
                                 <div className="flex justify-between items-center">
                                     <div>
