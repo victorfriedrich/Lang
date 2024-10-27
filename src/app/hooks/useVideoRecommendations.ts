@@ -3,6 +3,7 @@ import { UserContext } from '@/context/UserContext';
 
 interface Video {
   id: string;
+  title: string;
   percentUnderstood: number;
   newWords: number;
 }
@@ -54,6 +55,7 @@ export const useVideoRecommendations = (selectedCategory: string, language: stri
       console.log(data);
       const videosWithPercentages = data.ids.map((id: string, index: number) => ({
         id,
+        title: data.titles[index],
         percentUnderstood: Math.round(data.ratios[index] * 100),
         newWords: data.newWords[index]
       }));

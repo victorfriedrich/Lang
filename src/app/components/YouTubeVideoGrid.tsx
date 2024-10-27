@@ -112,7 +112,7 @@ const YouTubeVideoGrid: React.FC = () => {
                     </div>
                 ) : (
                     videos.map((video) => (
-                        <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" onClick={() => handleVideoClick(video.id, `New words in this video`)}>
+                        <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" >
                             <div className="aspect-w-16 aspect-h-9 h-48 video-container" data-video-id={video.id}>
                                 {loadedVideos.has(video.id) ? (
                                     <iframe
@@ -132,6 +132,7 @@ const YouTubeVideoGrid: React.FC = () => {
                                     />
                                 )}
                             </div>
+                            <p className="text-sm font-medium px-4 pt-4 mb-2 line-clamp-2">{video.title}...</p>
                             <div className="p-4 group relative">
                                 <div className="flex justify-between items-center">
                                     <div>
