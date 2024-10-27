@@ -1,10 +1,11 @@
 import os
 import json
-from scipy.sparse import csr_matrix
 import numpy as np
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from typing import List
+from scipy.sparse import lil_matrix, csr_matrix
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Path to the folder containing the documents
 folder_path = 'processed'
