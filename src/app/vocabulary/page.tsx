@@ -106,13 +106,14 @@ const VocabularyLearnerWithStreak = () => {
 
   if (showSession) {
     return (
+      
       <FlashcardSession
         mode={sessionMode}
         frontSide={frontSide}
         onExit={handleExitSession}
         learningSet={wordsDueToday.map(word => ({
           id: word.word_id,
-          word: word.word_root,
+          word: word.word_root || word.root,
           translation: word.translation
         }))}
       />

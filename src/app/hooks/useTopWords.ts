@@ -13,15 +13,28 @@ export const useTopWords = (refreshTrigger: number) => {
   const [topWords, setTopWords] = useState<TopWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { language } = useContext(UserContext)
+  const { language, isLoading: isLoadingUser } = useContext(UserContext);
 
   useEffect(() => {
+    // Don't fetch if user/language is still loading
+    if (isLoadingUser) {
+      return;
+    }
+
+    // Don't fetch if language is not available
+    if (!language?.name) {
+      setTopWords([]);
+      setIsLoading(false);
+      setError('No language selected');
+      return;
+    }
+
     const fetchTopWords = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const { data, error } = await supabase.rpc('get_user_words', {
-          language_filter: language?.name.toLowerCase()
+          language_filter: language.name.toLowerCase()
         });
 
         if (error) {
@@ -29,16 +42,22 @@ export const useTopWords = (refreshTrigger: number) => {
           throw error;
         }
 
-        setTopWords(data);
+        setTopWords(data || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
+        setTopWords([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTopWords();
-  }, [refreshTrigger]); // Add refreshTrigger to the dependency array
+  }, [refreshTrigger, language, isLoadingUser]);
 
-  return { topWords, isLoading, error };
+  return { 
+    topWords, 
+    isLoading: isLoading || isLoadingUser,
+    error,
+    isInitialized: !isLoadingUser && language?.name != null 
+  };
 };
