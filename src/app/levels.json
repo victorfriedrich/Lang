@@ -1,7 +1,7 @@
 [
     {
         "level": "A1",
-        "description": "Beginner",
+        "description": "Beginner (Top 700)",
         "words": [
             789,
             788,
@@ -19,7 +19,7 @@
     },
     {
         "level": "A2",
-        "description": "Elementary",
+        "description": "Elementary (Top 1400)",
         "words": [
             789,
             788,
@@ -42,7 +42,7 @@
     },
     {
         "level": "B1",
-        "description": "Intermediate",
+        "description": "Intermediate (Top 2200)",
         "words": [
             789,
             788,
@@ -72,7 +72,7 @@
     },
     {
         "level": "B2",
-        "description": "Upper Intermediate",
+        "description": "Upper Intermediate (Top 5000)",
         "words": [
             789,
             788,
@@ -110,7 +110,7 @@
     },
     {
         "level": "C1",
-        "description": "Advanced",
+        "description": "Advanced (Top 7500)",
         "words": [
             789,
             788,
