@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { UserContext } from '@/context/UserContext';
+import { useState, useEffect, useContext } from 'react';
 
 interface ArticleWord {
   content: string;
@@ -16,13 +17,14 @@ export const useArticleText = (articleId: string) => {
   const [articleText, setArticleText] = useState<ArticleWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { language } = useContext(UserContext)
 
   useEffect(() => {
     const fetchArticleText = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_URL}/article/${articleId}`);
+        const response = await fetch(`${API_URL}/article/${articleId}?language=${language?.code}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

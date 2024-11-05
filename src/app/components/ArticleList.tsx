@@ -9,9 +9,8 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 
 const ArticleList: React.FC = () => {
-  const [includeCognates, setIncludeCognates] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All Articles');
-  const { articles, categories, isLoading, error } = useArticleRecommendations(includeCognates, selectedCategory);
+  const { articles, categories, isLoading, error } = useArticleRecommendations(selectedCategory);
   const router = useRouter();
 
   if (isLoading) {
@@ -52,16 +51,6 @@ const ArticleList: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex items-center space-x-2">
-            <label htmlFor="cognate-toggle" className="text-sm font-medium">
-              Include cognates
-            </label>
-            <Switch
-              checked={includeCognates}
-              onCheckedChange={setIncludeCognates}
-              id="cognate-toggle"
-            />
-          </div>
         </div>
 
         <div className="space-y-4">
@@ -90,7 +79,7 @@ const ArticleList: React.FC = () => {
         <div className="mt-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg overflow-hidden relative">
           <div className="relative p-6 md:p-8 text-white z-10">
             <h2 className="text-2xl md:text-3xl font-bold mb-2">Use the Chrome Extension</h2>
-            <p className="text-lg mb-4">Integrate your vocabulary into any site you're using</p>
+            <p className="text-lg mb-4">Parse articles on any site you're using</p>
             <button className="bg-white text-blue-600 font-semibold py-2 px-4 rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200" disabled>
               Coming Soon
             </button>
