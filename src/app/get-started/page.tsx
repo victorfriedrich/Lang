@@ -34,7 +34,7 @@ interface LanguageOption {
 }
 
 const languageOptions: LanguageOption[] = [
-  { code: 'es', name: 'Spanish', flag: '🇪🇸', disabled: false },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸', disabled: true },
   { code: 'it', name: 'Italian', flag: '🇮🇹', disabled: false },
   { code: 'de', name: 'German', flag: '🇩🇪', disabled: false },
   { code: 'fr', name: 'French', flag: '🇫🇷', disabled: true },
