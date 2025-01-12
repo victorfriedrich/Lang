@@ -5,6 +5,7 @@ import { useUnseenWords } from '../hooks/useUnseenWords';
 import { useFetchTotalWordsKnown } from '../hooks/useFetchTotalWordsKnown';
 import { useUniqueLearned } from '../hooks/useUniqueLearned';
 import { useWordsKnownByDate } from '../hooks/useWordsKnownByDate';
+import { useCategories } from '../hooks/useCategories';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -19,9 +20,9 @@ import {
 import ProtectedRoute from '../components/ProtectedRoute';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
-import NewWordsTable from '../components/NewWordsTable';
-import ProgressBar from '../components/ProgressBar'; // New component for progress bar
+import ProgressBar from '../components/ProgressBar';
 import KnownWords from '../components/KnownWords';
+import WordCategories from '../components/WordCategories';
 
 ChartJS.register(
   CategoryScale,
@@ -39,15 +40,15 @@ const ProgressPage = () => {
   const editRef = useRef(null);
   const addRef = useRef(null);
 
-  // State for search term
   const [searchTerm, setSearchTerm] = useState('');
-  // State for debounced search term
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const { unseenWords, isLoading: unseenLoading, error: unseenError } = useUnseenWords();
   const { totalWordsKnown, isLoading: totalLoading, error: totalError } = useFetchTotalWordsKnown();
   const { uniqueLearned, isLoading: uniqueLoading, error: uniqueError } = useUniqueLearned();
   const { wordsKnownData, isLoading: wordsKnownLoading, error: wordsKnownError } = useWordsKnownByDate();
+  const { categories, isLoading: categoriesLoading } = useCategories('es');
 
   useLayoutEffect(() => {
     const updateUnderline = () => {
@@ -67,30 +68,32 @@ const ProgressPage = () => {
     return () => window.removeEventListener('resize', updateUnderline);
   }, [selectedView]);
 
-  // Debounce effect
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 320); // Adjust the debounce delay as needed
+    }, 320);
 
-    // Cleanup timeout if searchTerm changes or component unmounts
     return () => {
       clearTimeout(handler);
     };
   }, [searchTerm]);
 
+  // Reset category when switching views
+  useEffect(() => {
+    setSelectedCategory(null);
+    setSearchTerm('');
+  }, [selectedView]);
+
   const chartData = useMemo(() => {
     const labels = wordsKnownData.map(item => item.date);
     const data = wordsKnownData.map(item => Math.round(item.words_known));
 
-    // Ensure only unique dates are used
     const uniqueLabels = [...new Set(labels)];
     const uniqueData = uniqueLabels.map(date => {
       const index = labels.indexOf(date);
       return data[index];
     });
 
-    // If there's only one data point, add a duplicate to create a flat line
     if (uniqueLabels.length === 1) {
       uniqueLabels.push(uniqueLabels[0]);
       uniqueData.push(uniqueData[0]);
@@ -98,17 +101,14 @@ const ProgressPage = () => {
 
     return {
       labels: uniqueLabels,
-      datasets: [
-        {
-          label: 'Words Known',
-          data: uniqueData,
-
-          fill: true,
-          backgroundColor: 'rgba(60, 130, 250, 0.2)',
-          borderColor: 'rgb(60, 130, 250)',
-          tension: 0,
-        },
-      ],
+      datasets: [{
+        label: 'Words Known',
+        data: uniqueData,
+        fill: true,
+        backgroundColor: 'rgba(60, 130, 250, 0.2)',
+        borderColor: 'rgb(60, 130, 250)',
+        tension: 0,
+      }],
     };
   }, [wordsKnownData]);
 
@@ -117,14 +117,8 @@ const ProgressPage = () => {
     maintainAspectRatio: true,
     aspectRatio: 2,
     plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: false,
-        text: 'Your Learning Progress',
-      },
-
+      legend: { display: false },
+      title: { display: false },
     },
     scales: {
       y: {
@@ -132,27 +126,19 @@ const ProgressPage = () => {
         ticks: {
           stepSize: 2,
           precision: 0,
-          font: {
-            size: 14
-          }
+          font: { size: 14 }
         },
-        grid: {
-          drawBorder: false,
-        },
+        grid: { drawBorder: false },
       },
       x: {
         ticks: {
-          font: {
-            size: 14
-          },
+          font: { size: 14 },
           maxRotation: 0,
           autoSkip: false,
           padding: 10,
           align: 'inner',
         },
-        grid: {
-          drawBorder: false,
-        },
+        grid: { drawBorder: false },
       }
     },
     layout: {
@@ -165,10 +151,6 @@ const ProgressPage = () => {
     },
   };
 
-  const handleWordAdded = () => {
-    console.log('Word added to vocabulary');
-  };
-
   if (unseenLoading || totalLoading || uniqueLoading || wordsKnownLoading) return <LoadingState />;
   if (unseenError || totalError || uniqueError || wordsKnownError) return <ErrorState message={unseenError || totalError || uniqueError || wordsKnownError || 'An error occurred'} />;
 
@@ -176,6 +158,8 @@ const ProgressPage = () => {
     <ProtectedRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <h1 className="text-3xl font-bold mb-6">Your Learning Progress</h1>
+        
+        {/* Stats Section */}
         <div className="flex flex-col lg:flex-row gap-8 mb-8">
           <div className="lg:w-1/2 bg-white p-4 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Words Learned Over Time</h2>
@@ -185,66 +169,82 @@ const ProgressPage = () => {
             <div className="bg-white p-4 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-2">Total Words Known</h2>
               <p className="text-3xl mb-2 font-bold text-blue-600">{totalWordsKnown}</p>
-              <ProgressBar value={totalWordsKnown} max={totalWordsKnown + 120} /> {/* Example progress bar */}
+              <ProgressBar value={totalWordsKnown} max={totalWordsKnown + 120} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-2">Words Learned</h2>
-              <p className="text-3xl mb-2 font-bold text-blue-600 ">{uniqueLearned}</p>
-              <ProgressBar value={uniqueLearned} max={75} /> {/* Example progress bar */}
+              <p className="text-3xl mb-2 font-bold text-blue-600">{uniqueLearned}</p>
+              <ProgressBar value={uniqueLearned} max={75} />
             </div>
           </div>
         </div>
-        {/* New section with side-by-side options and search input */}
 
-      </div>
-      <div className='md:p-8'>
-        <div className="relative bg-white rounded-t-md py-2 flex justify-between items-center">
-          <div className="flex space-x-8">
-            <button
-              ref={editRef}
-              className={`py-2 px-4 font-semibold ${selectedView === 'editVocabulary'
-                  ? 'text-blue-600 '
-                  : 'text-gray-600 hover:text-gray-800'
+        {/* Navigation and Search/Category Section */}
+        <div className="">
+          <div className="relative bg-white rounded-t-md py-2 flex justify-between items-center">
+            <div className="flex space-x-8">
+              <button
+                ref={editRef}
+                className={`py-2 px-4 font-semibold ${
+                  selectedView === 'editVocabulary'
+                    ? 'text-blue-600'
+                    : 'text-gray-600 hover:text-gray-800'
                 }`}
-              onClick={() => setSelectedView('editVocabulary')}
-            >
-              Edit Vocabulary
-            </button>
-            <button
-              ref={addRef}
-              className={`py-2 px-4 font-semibold ${selectedView === 'addNewWords'
-                  ? 'text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                onClick={() => setSelectedView('editVocabulary')}
+              >
+                Edit Vocabulary
+              </button>
+              <button
+                ref={addRef}
+                className={`py-2 px-4 font-semibold ${
+                  selectedView === 'addNewWords'
+                    ? 'text-blue-600'
+                    : 'text-gray-600 hover:text-gray-800'
                 }`}
-              onClick={() => setSelectedView('addNewWords')}
-            >
-              Add New Words
-            </button>
-          </div>
-          <div className="ml-auto mr-4">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+                onClick={() => setSelectedView('addNewWords')}
+              >
+                Add New Words
+              </button>
+            </div>
+            <div className="ml-auto mr-4">
+              {selectedView === 'editVocabulary' ? (
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              ) : (
+                <select
+                  value={selectedCategory || ''}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={categoriesLoading}
+                >
+                  <option value="">Select Category</option>
+                  {categories?.map((categoryObj) => (
+                    <option key={categoryObj.category} value={categoryObj.category}>
+                      {categoryObj.category}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <div
+              className="absolute bottom-0 h-0.5 bg-blue-600"
+              style={underlineStyle}
             />
           </div>
-          <div
-            className="absolute bottom-0 h-0.5 bg-blue-600"
-            style={underlineStyle}
-          />
-        </div>
 
-        {/* Table with conditional rendering based on selection */}
-        <div className="border border-gray-200">
-          <div>
+          {/* Content Section */}
+          <div className="border border-gray-200">
             {selectedView === 'editVocabulary' ? (
               <KnownWords searchTerm={debouncedSearchTerm} />
             ) : (
-              <NewWordsTable
-                words={unseenWords}
-                onWordAdded={handleWordAdded}
+              <WordCategories 
+                language='es' 
+                selectedCategory={selectedCategory}
               />
             )}
           </div>

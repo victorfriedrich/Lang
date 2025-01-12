@@ -12,6 +12,7 @@ function Login() {
   const [emailSent, setEmailSent] = useState<boolean>(false);
   const [retryTimer, setRetryTimer] = useState<number>(60);
   const { user } = useContext(UserContext);
+  const [error, setError] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
@@ -50,7 +51,8 @@ function Login() {
       setRetryTimer(60);
     } catch (error) {
       if (error instanceof Error) {
-        alert(error.message);
+        
+        console.log(error.message);
       } else {
         alert('An unknown error occurred');
       }

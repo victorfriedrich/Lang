@@ -17,7 +17,7 @@ export default function ExtensionGuide() {
 
                 <div className="flex items-center mb-6">
                     <Download className="text-blue-500 mr-2" size={24} />
-                    <Link href="https://xpovcmbrttmkhnrfspvo.supabase.co/storage/v1/object/sign/downloads/dist.zip?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJkb3dubG9hZHMvZGlzdC56aXAiLCJpYXQiOjE3MzA2NDEwNTQsImV4cCI6MTc2MjE3NzA1NH0.-or1BUjLF5U8OjujD1ZJtRxuKoqDn-f_J6b-IZOvCQ0&t=2024-11-03T13%3A37%3A35.036Z">
+                    <Link href="https://xpovcmbrttmkhnrfspvo.supabase.co/storage/v1/object/sign/downloads/dist.zip?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJkb3dubG9hZHMvZGlzdC56aXAiLCJpYXQiOjE3MzY3MTg2NDIsImV4cCI6MTc2ODI1NDY0Mn0.Wnb7-HxrlMBCVgPZHqqLNPbqCpBzAg25hpsjy632VoU&t=2025-01-12T21%3A50%3A42.204Z">
                         <span className="text-blue-500 font-semibold text-md underline cursor-pointer">
                             Download Extension (Development Build)
                         </span>

@@ -1,8 +1,14 @@
-import React from 'react';
-import InvalidWordsPage from '../components/WordValidation';
+"use client";
 
-export default function LoginPage() {
+import React, { useContext } from 'react';
+import InvalidWordsPage from '../components/WordValidation';
+import { UserContext } from '@/context/UserContext';
+
+export default function ValidationPage() {
+
+  const { language } = useContext(UserContext);
+
   return (
-    <InvalidWordsPage language={"german"} />
+    <InvalidWordsPage language={language?.name} />
   );
 }
