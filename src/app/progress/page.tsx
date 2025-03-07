@@ -192,7 +192,7 @@ const ProgressPage = () => {
                 }`}
                 onClick={() => setSelectedView('editVocabulary')}
               >
-                Edit Vocabulary
+                Your Vocabulary
               </button>
               <button
                 ref={addRef}

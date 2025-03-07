@@ -11,7 +11,8 @@ import { UserContext } from '@/context/UserContext';
 const YouTubeVideoGrid: React.FC = () => {
     const { language } = useContext(UserContext); // Access language from UserContext
     const [selectedCategory, setSelectedCategory] = useState<string>('All Videos');
-    const { videos, categories, isVideosLoading, isCategoriesLoading, error } = useVideoRecommendations(selectedCategory, language?.code || 'spanish');
+    // TODO: No language selected here?
+    const { videos, categories, isVideosLoading, isCategoriesLoading, error } = useVideoRecommendations(selectedCategory, language?.code || 'es');
     const [selectedVideo, setSelectedVideo] = useState<{ id: string, title: string } | null>(null);
     const [confirmationPopup, setConfirmationPopup] = useState<{ count: number, visible: boolean }>({ count: 0, visible: false });
     const [loadedVideos, setLoadedVideos] = useState<Set<string>>(new Set());

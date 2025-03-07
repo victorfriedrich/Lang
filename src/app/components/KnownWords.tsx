@@ -199,7 +199,7 @@ const KnownWords: React.FC<KnownWordsProps> = ({ searchTerm }) => {
           disabled={selectedWords.length === 0}
           onClick={handleAddToUserwords}
         >
-          Move {selectedWords.length} {selectedWords.length === 1 ? 'word' : 'words'} to Practice
+          Move {selectedWords.length} {selectedWords.length === 1 ? 'Word' : 'Words'} to Practice Again
         </button>
       </div>
     </div>

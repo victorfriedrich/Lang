@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon, LogOutIcon, Download } from 'lucide-react';
-import { UserContext, LanguageOption } from '@/context/UserContext'; // Import UserContext
+import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon, LogOutIcon, Download, Plus } from 'lucide-react';
+import { UserContext, AvailableLanguageOption } from '@/context/UserContext';
 import { supabase } from '@/lib/supabaseclient';
 
 interface SidebarProps {
@@ -14,9 +14,9 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const { user, language, setLanguage } = useContext(UserContext); // Access user and language from context
-  const [isDemoVisible, setIsDemoVisible] = useState(false); // State for demo message
-  const [isLanguagePopupOpen, setIsLanguagePopupOpen] = useState(false); // State for language popup
+  const { user, language, availableLanguages, setLanguage } = useContext(UserContext);
+  const [isDemoVisible, setIsDemoVisible] = useState(false);
+  const [isLanguagePopupOpen, setIsLanguagePopupOpen] = useState(false);
   const [isAccountPopupOpen, setIsAccountPopupOpen] = useState(false);
 
   useEffect(() => {
@@ -33,6 +33,8 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   useEffect(() => {
     if (user?.is_anonymous) {
       setIsDemoVisible(true);
+    } else {
+      setIsDemoVisible(false);
     }
   }, [user]);
 
@@ -40,16 +42,14 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     { href: '/videos', name: 'Videos', icon: Film },
     { href: '/vocabulary', name: 'Practice', icon: BookMarked },
     { href: '/progress', name: 'Words Known', icon: BarChart2 },
-    { href: '/extension', name: 'Extension', icon: Download},
+    { href: '/extension', name: 'Extension', icon: Download },
     { href: '/articles', name: 'Articles', icon: BookOpen },
-    { href: '/login', name: 'Login', icon: LogInIcon },
   ];
 
-  const languages: LanguageOption[] = [
-    { code: 'de', name: 'German', flag: 'de' },
-    { code: 'es', name: 'Spanish', flag: 'es' },
-    { code: 'it', name: 'Italian', flag: 'it' }
-  ];
+  // Add login item only for non-logged in users
+  if (!user) {
+    navItems.push({ href: '/login', name: 'Login', icon: LogInIcon });
+  }
 
   const toggleSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
@@ -73,14 +73,22 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-
     setIsAccountPopupOpen(false);
   };
 
-  const handleLanguageChange = (newLanguage: LanguageOption) => {
-    setLanguage(newLanguage);
-    setIsLanguagePopupOpen(false);
+  const handleLanguageChange = (newLanguage: AvailableLanguageOption) => {
+    if (newLanguage.initialized) {
+      setLanguage(newLanguage);
+      setIsLanguagePopupOpen(false);
+    } else {
+      // Redirect to dedicated add-language page (not the start-learning page)
+      window.location.href = `/add-language?language=${newLanguage.code}`;
+    }
   };
+
+  // Group languages by initialization status
+  const initializedLanguages = availableLanguages.filter(lang => lang.initialized);
+  const uninitializedLanguages = availableLanguages.filter(lang => !lang.initialized);
 
   return (
     <>
@@ -153,21 +161,20 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
             ))}
           </div>
 
-          {/* Bottom Section */}
-          <div className="mt-auto p-3 border-t mt-4 border-gray-200 relative">
-            <div className="flex items-center justify-between">
+          <div className="mt-auto p-3 border-t border-gray-200 relative">
+            <div className="flex items-center justify-between gap-2">
               {/* Account Information */}
               <button
-                className="flex-1 flex flex-col items-left truncate"
+                className="flex flex-col items-start truncate"
                 onClick={toggleAccountPopup}
               >
                 <p className="text-sm font-medium text-gray-800">Profile</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email ? `${user.email.slice(0, 20)}...` : 'Demo Account'}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email ? user.email : 'Demo Account'}</p>
               </button>
               {/* Language Selector */}
               <button
                 onClick={toggleLanguagePopup}
-                className="p-2 rounded-md hover:bg-gray-200 focus:outline-none"
+                className="p-2 rounded-md hover:bg-gray-200 focus:outline-none flex-shrink-0"
                 aria-label="Change Language"
               >
                 {language?.flag ? (
@@ -189,26 +196,61 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                   className="fixed inset-0 z-40"
                   onClick={() => setIsLanguagePopupOpen(false)}
                 ></div>
-                <div className="absolute bottom-12 right-0 mt-2 w-40 bg-white shadow-lg rounded-md p-2 z-50">
-                  {/* Language Options */}
-                  <div className="flex flex-col space-y-2">
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100"
-                        onClick={() => handleLanguageChange(lang)}
-                      >
-                        <img
-                          src={`https://flagcdn.com/${lang.code}.svg`}
-                          alt={`${lang.name} flag`}
-                          width={20}
-                          height={20}
-                          className="rounded-sm"
-                        />
-                        <span>{lang.name}</span>
-                      </button>
-                    ))}
-                  </div>
+                <div className="absolute bottom-12 right-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 z-50">
+                  {/* Initialized Languages */}
+                  {initializedLanguages.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-xs text-gray-500 mb-1 px-2">Your Languages</p>
+                      <div className="flex flex-col space-y-1">
+                        {initializedLanguages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            className={`flex items-center space-x-2 w-full px-2 py-1 rounded ${
+                              language?.code === lang.code ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
+                            }`}
+                            onClick={() => handleLanguageChange(lang)}
+                          >
+                            <img
+                              src={`https://flagcdn.com/${lang.code}.svg`}
+                              alt={`${lang.name} flag`}
+                              width={20}
+                              height={20}
+                              className="rounded-sm"
+                            />
+                            <span>{lang.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Uninitialized Languages */}
+                  {uninitializedLanguages.length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1 px-2">Add New Language</p>
+                      <div className="flex flex-col space-y-1">
+                        {uninitializedLanguages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            className="flex items-center space-x-2 w-full px-2 py-1 hover:bg-gray-100 rounded text-gray-600"
+                            onClick={() => handleLanguageChange(lang)}
+                          >
+                            <div className="relative">
+                              <img
+                                src={`https://flagcdn.com/${lang.code}.svg`}
+                                alt={`${lang.name} flag`}
+                                width={20}
+                                height={20}
+                                className="rounded-sm opacity-70"
+                              />
+                              <Plus size={12} className="absolute -top-1 -right-1 bg-blue-100 rounded-full text-blue-700" />
+                            </div>
+                            <span>{lang.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -220,11 +262,9 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                 ></div>
                 <div className="absolute bottom-12 left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 z-50">
                   <div className="flex flex-col space-y-2">
-                    {/* <p className="text-sm font-medium text-gray-800">Account</p>
-                    <p className="text-xs text-gray-500 truncate">{user?.email || 'Demo Account'}</p> */}
                     <button
                       onClick={handleLogout}
-                      className="flex items-center space-x-2 w-full px-2 py-1 text-gray-600 hover:bg-gray-100"
+                      className="flex items-center space-x-2 w-full px-2 py-1 text-gray-600 hover:bg-gray-100 rounded"
                     >
                       <LogOutIcon size={14} />
                       <span>Log out</span>

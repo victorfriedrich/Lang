@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Basejump
 
-## Getting Started
+Basejump adds personal accounts, team accounts, permissions and billing support to Supabase Auth.
 
-First, run the development server:
+[Learn more at usebasejump.com](https://usebasejump.com). Ask questions [on X / Twitter](https://twitter.com/tiniscule)
+
+## Features
+
+- **Personal accounts**: Every user that signs up using Supabase auth automatically gets their own personal account.
+  Billing on personal accounts can be enabled/disabled.
+- **Team accounts**: Team accounts are billable accounts that can be shared by multiple users. Team accounts can be
+  disabled if you only wish to allow personal accounts. Billing on team accounts can also be disabled.
+- **Permissions**: Permissions are handled using RLS, just like you're used to with Supabase. Basejump provides
+  convenience methods that let you restrict access to rows based on a user's account access and role within an account
+- **Billing**: Basejump provides out of the box billing support for Stripe, but you can add your own providers easily.
+  If you do, please consider contributing them so others can benefit!
+- **Testing**: Basejump is fully tested itself, but also provides a suite of testing tools that make it easier to test
+  your own Supabase functions and schema. You can check it out
+  at [database.dev/basejump/supabase_test_helpers](https://database.dev/basejump/supabase_test_helpers). You do not need
+  to be using Basejump to use the testing tools.
+
+<br/><br/>
+
+
+# Quick Start
+
+Check out the getting started guide at [usebasejump.com](https://usebasejump.com).
+<br/>
+
+## Optional Nextjs starter template
+We've got a fleshed out starter template ready to go for Basejump built using NextJs.  You can install it by running:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn create next-app -e https://github.com/usebasejump/basejump-next
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then add your Supabase URL and anon key to your `.env.local` file. There's an example in the `.env.example` file.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> Note: create-next-app forces you to install the template into a nested directory. You can move the contents of the directory to the root of your project if you'd like.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+<br/><br/>
 
-## Learn More
+## Running tests
+Basejump includes comprehensive pgtap testing for all included functionality - but it's not enabled by default in case that's not your jam. To run the tests, you'll need to add a few dependencies.
 
-To learn more about Next.js, take a look at the following resources:
+#### Install pgtap
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sql
+create extension pgtap with schema extensions;
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### Install dbdev
+Follow the directions at [database.dev](https://database.dev/supabase/dbdev) to install dbdev.
 
-## Deploy on Vercel
+#### Install supabase_test_helpers
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```sql
+select dbdev.install('basejump-supabase_test_helpers');
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Run the tests
+```bash
+supabase test db
+```
+
+<br/><br/>
+
+## Contributing
+
+Yes please! Please submit a PR with your changes to [the basejump github repo](https://github.com/usebasejump/basejump). Please make sure your changes are well tested and documented.
+
+You can contribute in the following places:
+- [Basejump core](https://github.com/usebasejump/basejump)
+- [Basejump edge functions / billing functions](https://github.com/usebasejump/basejump-deno-packages)
