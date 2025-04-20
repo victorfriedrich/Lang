@@ -102,7 +102,19 @@ const LanguageSetup: React.FC<LanguageSetupProps> = ({
       setIsInitializing(true);
       try {
         // Initialize the language
-        await initializeLanguage(selectedLanguage.code, selectedLevel.level);
+
+        setTimeout(() => {
+          if (onComplete) {
+            console.log("Y")
+            onComplete();
+            initializeLanguage(selectedLanguage.code, selectedLevel.level);
+          } else {
+            // Default behavior - redirect to videos
+            router.push('/videos');
+          }
+        }, 1500);
+
+        
         
         // Update the context with the new language
         setLanguage({
@@ -114,14 +126,7 @@ const LanguageSetup: React.FC<LanguageSetupProps> = ({
         setIsComplete(true);
         
         // Wait a moment to show success message, then proceed
-        setTimeout(() => {
-          if (onComplete) {
-            onComplete();
-          } else {
-            // Default behavior - redirect to videos
-            router.push('/videos');
-          }
-        }, 1500);
+        
       } catch (error) {
         console.error('Error initializing language:', error);
         alert('An error occurred while setting up the language. Please try again.');

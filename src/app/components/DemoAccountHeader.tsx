@@ -3,11 +3,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { UserContext } from '@/context/UserContext';
-import { useTopWords } from '@/app/hooks/useTopWords';
+import { usePathname } from 'next/navigation';
 
 const DemoAccountHeader: React.FC = () => {
   const { user } = useContext(UserContext);
   const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (user?.is_anonymous) {
@@ -15,7 +16,7 @@ const DemoAccountHeader: React.FC = () => {
     }
   }, [user]);
 
-  if (!isVisible) {
+  if (!isVisible || pathname.startsWith('/get-started') || pathname.startsWith('/start-learning') || pathname.startsWith('/login')) {
     return null;
   }
 

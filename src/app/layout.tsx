@@ -7,6 +7,7 @@ import DemoAccountHeader from '@/app/components/DemoAccountHeader';
 import Sidebar from '@/app/components/Sidebar'; // Import the client Sidebar
 import { TutorialProvider } from "@/context/TutorialContext";
 import { Analytics } from "@vercel/analytics/react"
+import ConditionalSidebar from "./components/ConditionalSidebar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,11 +35,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-100 flex flex-col md:flex-row`}>
         <UserProvider>
           <TutorialProvider>
-            <Sidebar
-              documentName={undefined} // Pass necessary props if any
-            />
+            <ConditionalSidebar />
 
-            <main className="flex-1 md:pt-0 pt-12"> {/* Add padding top for mobile */}
+            <main className="flex-1 md:pt-0 pt-12"> 
               <DemoAccountHeader />
               {children}
               <Analytics />

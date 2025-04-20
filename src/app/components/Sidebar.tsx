@@ -136,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
             >
               <ChevronRight
                 size={20}
-                className={`transform transition-transform ${isCollapsed ? 'rotate-180' : 'rotate-0'}`}
+                className={`ml-1 transform focus:outline-hidden transition-transform ${isCollapsed ? 'rotate-180' : 'rotate-0'}`}
               />
             </button>
           </div>
@@ -161,11 +161,11 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
             ))}
           </div>
 
-          <div className="mt-auto p-3 border-t border-gray-200 relative">
-            <div className="flex items-center justify-between gap-2">
+          <div className="mt-auto border-t border-gray-200 relative">
+            <div className={`flex items-center ${isCollapsed ? 'md:justify-center p-2' : 'justify-between gap-2 p-3'}`}>
               {/* Account Information */}
               <button
-                className="flex flex-col items-start truncate"
+                className={`flex flex-col items-start truncate ${isCollapsed ? 'md:hidden' : ''}`}
                 onClick={toggleAccountPopup}
               >
                 <p className="text-sm font-medium text-gray-800">Profile</p>
@@ -174,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
               {/* Language Selector */}
               <button
                 onClick={toggleLanguagePopup}
-                className="p-2 rounded-md hover:bg-gray-200 focus:outline-none flex-shrink-0"
+                className={`rounded-md hover:bg-gray-200 focus:outline-none flex-shrink-0 ${isCollapsed ? 'md:h-12 md:w-12 md:flex md:items-center md:justify-center' : 'p-2'}`}
                 aria-label="Change Language"
               >
                 {language?.flag ? (
@@ -183,10 +183,10 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                     width={20}
                     height={20}
                     alt={`${language.flag.toLowerCase()} flag`}
-                    className="rounded-sm"
+                    className={`rounded-sm ${isCollapsed ? 'md:w-6' : ''}`}
                   />
                 ) : (
-                  <Globe size={20} />
+                  <Globe className={isCollapsed ? 'md:w-6 md:h-6' : ''} size={20} />
                 )}
               </button>
             </div>
@@ -196,7 +196,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                   className="fixed inset-0 z-40"
                   onClick={() => setIsLanguagePopupOpen(false)}
                 ></div>
-                <div className="absolute bottom-12 right-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 z-50">
+                <div className={`absolute mt-2 bg-white shadow-lg rounded-md p-2 z-50 w-48 ${isCollapsed ? 'md:left-full md:bottom-auto md:top-0' : 'bottom-12 right-0'}`}>
                   {/* Initialized Languages */}
                   {initializedLanguages.length > 0 && (
                     <div className="mb-2">
@@ -260,7 +260,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
                   className="fixed inset-0 z-40"
                   onClick={() => setIsAccountPopupOpen(false)}
                 ></div>
-                <div className="absolute bottom-12 left-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 z-50">
+                <div className={`absolute mt-2 bg-white shadow-lg rounded-md p-2 z-50 w-48 ${isCollapsed ? 'md:left-full md:bottom-auto md:top-10' : 'bottom-12 left-0'}`}>
                   <div className="flex flex-col space-y-2">
                     <button
                       onClick={handleLogout}

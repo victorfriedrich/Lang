@@ -3,8 +3,7 @@
 import React, { useState, useEffect, FormEvent, useContext } from 'react';
 import { supabase } from '@/lib/supabaseclient';
 import { UserContext } from '@/context/UserContext';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, Send, RefreshCw, User } from 'lucide-react';
+import { Send, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 const MigrateLogin = () => {
@@ -91,7 +90,7 @@ const MigrateLogin = () => {
                             Join Learnfive
                         </h1>
                         <p className="mt-2 text-center text-lg text-gray-600">
-                            Get access to all features
+                            Sign up and save your demo account progress
                         </p>
                     </div>
                     <form className="mt-8 space-y-6" onSubmit={handleMigrate}>

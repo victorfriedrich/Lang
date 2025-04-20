@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseclient';
+import { Loader2 } from 'lucide-react';
 
 const AuthCallback = () => {
   const router = useRouter();
@@ -31,7 +32,11 @@ const AuthCallback = () => {
     handleAuthCallback();
   }, [router]);
 
-  return <div>Authenticating...</div>;
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+    </div>
+  )
 };
 
 export default AuthCallback;

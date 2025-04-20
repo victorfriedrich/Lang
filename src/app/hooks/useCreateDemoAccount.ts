@@ -18,11 +18,14 @@ export const useCreateDemoAccount = () => {
     setError(null);
 
     try {
+      console.log("Hook is USED!!")
       const { data, error } = await supabase.auth.signInAnonymously();
 
       if (error) {
         throw error;
       }
+      
+      console.log(data)
 
       if (data && data.user) {
         // Fetch additional user profile data if necessary
@@ -32,6 +35,7 @@ export const useCreateDemoAccount = () => {
           email,
           is_anonymous: data.user?.app_metadata?.provider === 'anonymous',
         };
+        console.log(profile)
         setUser(profile);
       }
     } catch (err: any) {

@@ -26,7 +26,7 @@ export const FlashCardContent: React.FC<FlashCardContentProps> = ({
   hideNextCard,
 }) => (
   <motion.div
-    className={`absolute inset-0 w-full h-full ${isNextCard ? (hideNextCard ? 'opacity-0' : 'opacity-50') : ''}`}
+    className={`absolute inset-0 w-full h-full focus:outline-none ${isNextCard ? (hideNextCard ? 'opacity-0' : 'opacity-50') : ''}`}
     animate={{
       rotateY: isFlipped ? 180 : 0,
       scale: isNextCard ? 0.9 : 1,
@@ -38,7 +38,7 @@ export const FlashCardContent: React.FC<FlashCardContentProps> = ({
     }}
   >
     {/* Front Side */}
-    <Card className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] front-side backface-hidden">
+    <Card className="absolute w-full h-full bg-white rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] front-side backface-hidden focus:outline-none">
       <motion.div
         className="absolute inset-0 rounded-lg"
         style={{ borderWidth: 4, borderStyle: 'solid', borderColor }}

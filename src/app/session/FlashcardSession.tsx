@@ -184,7 +184,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
 
       <div className="flex-grow flex flex-col items-center justify-center p-4">
 
-        <div className="relative w-full max-w-xl">
+        <div className="relative w-full max-w-xl focus:outline-none">
           <AnimatePresence>
             {showCorrectAnimation && (
               <motion.div
