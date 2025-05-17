@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { X, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -36,6 +36,16 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
     }
   }, [incorrectCount]);
 
+  // Deduplicate wordList for summary display
+  const uniqueWordList = useMemo(() => {
+    const seen = new Set<string>();
+    return wordList.filter(item => {
+      if (seen.has(item.word)) return false;
+      seen.add(item.word);
+      return true;
+    });
+  }, [wordList]);
+
   return (
     <div className="flex flex-col h-[calc(100dvh-48px)] md:h-[calc(100dvh-32px)] bg-white pt-8 md:pt-0"> {/* Adjusted for mobile header */}
       <div className="border-b">
@@ -59,7 +69,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
         <h3 className="text-2xl font-bold text-black mb-4 text-center">{percentageCorrect}% correct</h3>
 
         <div className="flex-grow overflow-y-auto mb-4">
-          {wordList.map((item, index) => (
+          {uniqueWordList.map((item, index) => (
             <div key={index} className="bg-gray-50 p-2 mb-2 rounded-lg flex justify-between items-center">
               <div>
                 <p className="font-bold text-base">{item.word}</p>

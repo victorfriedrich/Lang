@@ -43,7 +43,6 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
     { href: '/vocabulary', name: 'Practice', icon: BookMarked },
     { href: '/progress', name: 'Words Known', icon: BarChart2 },
     { href: '/extension', name: 'Extension', icon: Download },
-    { href: '/articles', name: 'Articles', icon: BookOpen },
   ];
 
   // Add login item only for non-logged in users
@@ -115,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
           transform transition-transform duration-300 ease-in-out
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
           md:sticky md:top-0 md:translate-x-0 md:flex-shrink-0 
-          bg-gray-100 border-r border-gray-200 overflow-y-auto
+          bg-gray-100 border-r border-gray-200 overflow-y-auto md:h-screen
           ${isCollapsed ? 'md:w-16' : 'md:w-60'}
           w-60 md:block
           ${isMobileOpen ? 'block' : 'hidden'}

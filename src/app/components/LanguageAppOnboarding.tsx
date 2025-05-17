@@ -48,7 +48,7 @@ const LanguageAppOnboarding: React.FC<LanguageAppOnboardingProps> = ({
     { code: 'es', name: 'Spanish', disabled: false },
     { code: 'de', name: 'German', disabled: false },
     { code: 'it', name: 'Italian', disabled: false },
-    { code: 'fr', name: 'French', disabled: true },
+    { code: 'fr', name: 'French', disabled: false },
     { code: 'ru', name: 'Russian', disabled: true },
   ];
 
@@ -189,7 +189,7 @@ const LanguageAppOnboarding: React.FC<LanguageAppOnboardingProps> = ({
           How good is your {selectedLanguage?.name}?
         </h2>
         <p className="text-gray-600 mb-6">
-          Based on your selection, we'll customize your experience. You can always adjust this later.
+          Based on your selection, we'll customize your experience and add the most common words. You can always adjust this later.
         </p>
         <div className="space-y-3">
           {levels.map(level => (
@@ -320,12 +320,14 @@ const LanguageAppOnboarding: React.FC<LanguageAppOnboardingProps> = ({
       </div>
   
       {/* Overlay footer */}
-      <div className="absolute bottom-4 text-sm text-gray-600 z-20">
-        Already have an account?{' '}
-        <a href="/login" className="text-orange-500 font-semibold hover:underline">
-          Sign in
-        </a>
-      </div>
+      {(currentStep === 1 || currentStep === 2) && !isComplete && (
+        <div className="absolute bottom-4 text-sm text-gray-600 z-20">
+          Already have an account?{' '}
+          <a href="/login" className="text-orange-500 font-semibold hover:underline">
+            Sign in
+          </a>
+        </div>
+      )}
     </div>
   );
   

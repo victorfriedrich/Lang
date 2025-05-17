@@ -60,12 +60,17 @@ const VocabularyLearnerWithStreak = () => {
   };
 
   if (showSession) {
+    // Filter out any words without required properties and add validation
+    const validWords = wordsDueToday.filter(word => 
+      word && word.word_id && (word.word_root || word.root) && word.translation
+    );
+    
     return (
       <FlashcardSession
         mode={sessionMode}
         frontSide={frontSide}
         onExit={handleExitSession}
-        learningSet={wordsDueToday.map((word) => ({
+        learningSet={validWords.map((word) => ({
           id: word.word_id,
           word: word.word_root || word.root,
           translation: word.translation,

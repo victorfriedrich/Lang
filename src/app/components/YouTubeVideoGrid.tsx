@@ -16,6 +16,7 @@ const YouTubeVideoGrid: React.FC = () => {
     const [selectedVideo, setSelectedVideo] = useState<{ id: string, title: string } | null>(null);
     const [confirmationPopup, setConfirmationPopup] = useState<{ count: number, visible: boolean }>({ count: 0, visible: false });
     const [loadedVideos, setLoadedVideos] = useState<Set<string>>(new Set());
+    const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
     const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -76,6 +77,12 @@ const YouTubeVideoGrid: React.FC = () => {
         setSelectedCategory(category);
     };
 
+    // Filter out categories labeled 'Failed' or 'Unknown' (case-insensitive)
+    const filteredCategories = categories.filter(
+        (category) =>
+            !/^(failed|unknown)$/i.test(category.category.trim())
+    );
+
     if (isCategoriesLoading) {
         // Show loading state for categories or an initial loading state
         return (
@@ -95,7 +102,7 @@ const YouTubeVideoGrid: React.FC = () => {
 
             <div className='flex justify-between'>
                 <div className="flex flex-wrap gap-2 mb-4">
-                    {categories.map((category) => (
+                    {filteredCategories.map((category) => (
                         <button
                             key={category.category}
                             onClick={() => handleCategoryChange(category.category)}
@@ -116,9 +123,9 @@ const YouTubeVideoGrid: React.FC = () => {
                     </div>
                 ) : (
                     videos.map((video) => (
-                        <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer" onClick={() => handleVideoClick(video.id, `New words in this video`)}>
-                            <div className="aspect-w-16 aspect-h-9 h-48 video-container" data-video-id={video.id}>
-                                {loadedVideos.has(video.id) ? (
+                        <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer flex flex-col h-full">
+                            <div className="aspect-w-16 aspect-h-8 h-40 video-container relative" data-video-id={video.id}>
+                                {playingVideoId === video.id ? (
                                     <iframe
                                         src={`https://www.youtube.com/embed/${video.id}`}
                                         frameBorder="0"
@@ -127,12 +134,24 @@ const YouTubeVideoGrid: React.FC = () => {
                                         className="w-full h-full"
                                     ></iframe>
                                 ) : (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+                                    <div className="w-full h-full relative" onClick={() => setPlayingVideoId(video.id)}>
+                                        <img
+                                            src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
+                                            alt={video.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 text-white opacity-90" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M8 5v14l11-7z" />
+                                            </svg>
+                                        </div>
                                     </div>
                                 )}
                             </div>
-                            <div className="p-4 group relative">
+                            <div className="px-4 pt-2 pb-0 flex-1 flex flex-col">
+                                <div className="text-base font-semibold text-gray-900 line-clamp-2 mb-2" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'}} title={video.title}>{video.title}</div>
+                            </div>
+                            <div className="p-4 group relative pt-2 mt-auto border-t border-gray-100">
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <div className="text-md font-medium">

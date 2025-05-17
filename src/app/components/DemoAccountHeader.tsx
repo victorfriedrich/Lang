@@ -16,7 +16,7 @@ const DemoAccountHeader: React.FC = () => {
     }
   }, [user]);
 
-  if (!isVisible || pathname.startsWith('/get-started') || pathname.startsWith('/start-learning') || pathname.startsWith('/login')) {
+  if (!isVisible || pathname.startsWith('/get-started') || pathname.startsWith('/start-learning') || pathname.startsWith('/login') || pathname.startsWith('/add-language')) {
     return null;
   }
 

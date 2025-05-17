@@ -29,9 +29,12 @@ function getDuePill(dueStr: string) {
   }
 
   // Numeric-based coloring
-  if (numericDue <= 0) {
-    // Overdue or same day
-    return { label: dueStr, colorClass: 'bg-red-200' };
+  if (numericDue < 0) {
+    // Overdue
+    return { label: 'Overdue', colorClass: 'bg-red-200' };
+  } else if (numericDue === 0) {
+    // Due today
+    return { label: 'Due Today', colorClass: 'bg-red-200' };
   } else if (numericDue <= 3) {
     return { label: dueStr, colorClass: 'bg-orange-200' };
   } else if (numericDue <= 7) {
@@ -165,7 +168,7 @@ const LearningWordsTable: React.FC = () => {
                     {word.word}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-gray-600">
-                    {word.translation}
+                    {word.translation ?? ''}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-right w-24">
                     <span

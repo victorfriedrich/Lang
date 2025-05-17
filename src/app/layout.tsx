@@ -37,7 +37,7 @@ export default function RootLayout({
           <TutorialProvider>
             <ConditionalSidebar />
 
-            <main className="flex-1 md:pt-0 pt-12"> 
+            <main className="flex-1 md:pt-0 pt-12 overflow-y-auto h-screen"> 
               <DemoAccountHeader />
               {children}
               <Analytics />

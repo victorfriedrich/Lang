@@ -39,6 +39,13 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
 
   const [learningSet, setLearningSet] = useState(initialLearningSet);
 
+  // If no cards, exit session immediately
+  useEffect(() => {
+    if (learningSet.length === 0) {
+      onExit();
+    }
+  }, [learningSet, onExit]);
+
   const currentCard = learningSet[currentCardIndex];
   const nextCard = learningSet[currentCardIndex + 1];
 
@@ -96,14 +103,19 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
     handleAnswer(result, wasFlipped);
   }, [handleAnswer]);
 
+  // Handler to restart session
   const handleRestart = useCallback(() => {
-    setLearningSet(incorrectCards);
+    setShowSummary(false);
     setCurrentCardIndex(0);
     setCorrectCards([]);
     setIncorrectCards([]);
     setWordList([]);
-    setShowSummary(false);
-  }, [incorrectCards]);
+    setIsFlipped(false);
+    setInputValue('');
+    setFeedback(null);
+    setShowCorrectAnimation(false);
+    setWaitForNextButton(false);
+  }, []);
 
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     if (event.code === 'Space') {

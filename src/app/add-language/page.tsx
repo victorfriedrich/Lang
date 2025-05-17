@@ -29,7 +29,9 @@ const AddLanguagePage: React.FC = () => {
   }
 
   return (
-    <LanguageSetup onComplete={handleComplete} isNewAccount={false} />
+    <div className="w-full h-full">
+      <LanguageSetup onComplete={handleComplete} isNewAccount={false} />
+    </div>
   );
 };
 

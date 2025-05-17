@@ -30,10 +30,7 @@ const ProficiencyPage: React.FC = () => {
 
   return (
     <>
-      <LanguageAppOnboarding 
-        onComplete={handleSetupComplete}
-        isNewAccount={true}
-      />
+      <LanguageAppOnboarding onComplete={handleSetupComplete} isNewAccount={true} />
     </>
   );
 };
