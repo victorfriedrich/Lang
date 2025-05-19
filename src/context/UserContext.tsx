@@ -49,8 +49,8 @@ export const UserContext = createContext<UserContextProps>({
 });
 
 const SUPPORTED_LANGUAGES: Record<string, Omit<LanguageOption, 'initialized'>> = {
-  'de': { code: 'de', name: 'German', flag: 'de' },
   'es': { code: 'es', name: 'Spanish', flag: 'es' },
+  'de': { code: 'de', name: 'German', flag: 'de' },
   'it': { code: 'it', name: 'Italian', flag: 'it' },
   'fr': { code: 'fr', name: 'French', flag: 'fr' },
 };

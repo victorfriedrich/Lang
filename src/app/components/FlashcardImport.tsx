@@ -6,8 +6,10 @@ import { useProcessMissingWords } from '../hooks/useFlashcards';
 import { useWordDetails } from '../hooks/useWordDetails';
 import { useUpdateUserwords } from '../hooks/useUpdateUserwords';
 import { UserContext } from '@/context/UserContext';
+import { useRouter } from 'next/navigation';
 
 const FlashcardImport = ({ data, onCancel, onComplete }) => {
+  const router = useRouter();
   // Data from the initial upload response
   const identifiedWords = data?.identified || [];
   const missingWords = data?.missing || [];
@@ -16,7 +18,7 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
   const [updatedMissingWords, setUpdatedMissingWords] = useState(missingWords);
   const [aiUsed, setAiUsed] = useState(false);
 
-  // Selected words initialized with identified words’ IDs
+  // Selected words initialized with identified words' IDs
   const [selectedWords, setSelectedWords] = useState(identifiedWords.map(word => word.id));
   const [hoveredRow, setHoveredRow] = useState(null);
   const [useSystemTranslation, setUseSystemTranslation] = useState(true);
@@ -26,6 +28,7 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
   
   const { processMissingWords, loading: processingUncommon, error: processingError } = useProcessMissingWords();
   const { addWordsToUserwords } = useUpdateUserwords();
+  const { fetchWithAuth } = useContext(UserContext);
 
   useEffect(() => {
     setUpdatedMissingWords(missingWords);
@@ -45,8 +48,8 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
   const { words: wordDetails } = useWordDetails(allWordIds);
 
   // Merge fetched details:
-  // - Use the RPC’s "word" as the processed "Imported as" value.
-  // - Use the RPC’s "translation" as "system_translation".
+  // - Use the RPC's "word" as the processed "Imported as" value.
+  // - Use the RPC's "translation" as "system_translation".
   const mergeWordDetails = (word) => {
     if (!word.id) return word;
     const details = wordDetails.find(d => d.word_id === word.id);
@@ -63,6 +66,12 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
   const mergedIdentifiedWords = identifiedWords.map(mergeWordDetails);
   const mergedMissingWords = updatedMissingWords.map(mergeWordDetails);
 
+  // Only show the yellow bar if there are unselected words requiring review
+  const unselectedMissingWords = mergedMissingWords.filter((word: any) => !word.id || !selectedWords.includes(word.id));
+  useEffect(() => {
+    setShowWarningSticky(unselectedMissingWords.length > 0);
+  }, [unselectedMissingWords.length]);
+
   const handleToggleWordSelection = (wordId) => {
     setSelectedWords(prev =>
       prev.includes(wordId)
@@ -73,16 +82,19 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
 
   // Process missing words via AI and mark that AI has been used.
   const handleProcessUncommonWords = async () => {
-    if (updatedMissingWords.length === 0) return;
+    // Only process missing words that are not already selected
+    const toProcess = updatedMissingWords.filter(word => !word.id || !selectedWords.includes(word.id));
+    if (toProcess.length === 0) return;
 
     try {
       const result = await processMissingWords(
-        updatedMissingWords,
+        toProcess,
         language?.code || 'es',
         'flashcards_import'
       );
       setAiUsed(true);
       if (result && result.processed) {
+        // Update only the processed words
         const updated = updatedMissingWords.map(word => {
           const processedWord = result.processed.find(p => p.word === word.word);
           if (processedWord) {
@@ -101,6 +113,81 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
     }
   };
 
+  // Helper for checking split words in backend cache
+  const checkWordsInCache = async (
+    words: string[],
+    fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response>
+  ): Promise<{ identified: any[]; missing: any[] }> => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetchWithAuth(`${API_URL}/flashcards/check-words`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words, language: language?.code || 'es' }),
+    });
+    if (!response.ok) throw new Error('Failed to check words in cache');
+    return response.json();
+  };
+
+  // Split Words logic (split on spaces and slashes, update UI instantly)
+  const handleSplitWords = async () => {
+    // Only split missing words that are not already selected and have no id
+    const toSplit = updatedMissingWords.filter((word: any) => !word.id || !selectedWords.includes(word.id));
+    if (toSplit.length === 0) {
+      console.log('No words to split');
+      return;
+    }
+
+    // Prepare split candidates: split on all whitespace and slashes, flatten, trim, dedupe
+    let splitCandidates: string[] = [];
+    toSplit.forEach((word: any) => {
+      // Split on all whitespace and slashes
+      const parts = word.word
+        .split(/\s+|\//g)
+        .map((w: string) => w.trim())
+        .filter(Boolean);
+      parts.forEach((part: string) => {
+        if (!splitCandidates.includes(part)) {
+          splitCandidates.push(part);
+        }
+      });
+    });
+    console.log('Split candidates:', splitCandidates);
+    if (splitCandidates.length === 0) {
+      console.log('No split candidates after splitting');
+      return;
+    }
+
+    try {
+      const { identified, missing } = await checkWordsInCache(splitCandidates, fetchWithAuth);
+      console.log('API response:', { identified, missing });
+      // Remove original phrases from missing
+      setUpdatedMissingWords((prev: any[]) => {
+        // Remove all originals that were split
+        let newMissing = prev.filter(word => !toSplit.some(orig => orig.word === word.word));
+        // Add missing split parts (unselected, no id)
+        missing.forEach((w: any) => {
+          if (!newMissing.some(word => word.word === w.word)) {
+            newMissing.push({ word: w.word, translation: '' });
+          }
+        });
+        // Add identified split parts (with id/translation)
+        identified.forEach((w: any) => {
+          if (!newMissing.some(word => word.word === w.word)) {
+            newMissing.push({ word: w.word, translation: w.translation || '', id: w.id });
+          }
+        });
+        return newMissing;
+      });
+      // Add found split words to selected/common
+      setSelectedWords((prev: any[]) => {
+        const newIds = identified.map((w: any) => w.id);
+        return [...new Set([...prev, ...newIds])];
+      });
+    } catch (error) {
+      console.error('Failed to split and check words:', error);
+    }
+  };
+
   // When Add to Practice is clicked, call the RPC to move words to userwords.
   // We assume the backend will use the user's translations if available.
   const handleAddSelectedToPractice = async () => {
@@ -108,7 +195,8 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
 
     try {
       await addWordsToUserwords(selectedWords);
-      onComplete && onComplete(); // Optionally signal completion.
+      onComplete && onComplete(selectedWords); // Pass selected words to parent
+      router.push('/vocabulary');
     } catch (error) {
       console.error('Error moving words to userwords:', error);
     }
@@ -231,7 +319,7 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
           <p className="text-gray-600 mb-3">
             These cards contain words that are not among the 100k most common ones.
           </p>
-          <div className="mb-4">
+          <div className="mb-4 flex gap-2">
             <button 
               className="flex items-center px-3 py-1.5 border border-gray-300 bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-all"
               onClick={handleProcessUncommonWords}
@@ -247,6 +335,13 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
                   Enhance with AI <Check size={16} className="ml-1.5" />
                 </>
               )}
+            </button>
+            <button
+              className="flex items-center px-3 py-1.5 border border-blue-300 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-all"
+              onClick={handleSplitWords}
+              disabled={processingUncommon}
+            >
+              Split Words
             </button>
           </div>
           {processingError && (
@@ -327,11 +422,11 @@ const FlashcardImport = ({ data, onCancel, onComplete }) => {
 
       {/* Sticky Footer */}
       <div className="sticky bottom-0 w-full z-10">
-        {showWarningSticky && mergedMissingWords.length > 0 && (
+        {showWarningSticky && unselectedMissingWords.length > 0 && (
           <div className="bg-amber-50 border-t border-amber-200 px-6 py-3 flex items-center justify-between">
             <div className="flex items-start">
               <AlertCircle className="text-amber-500 mr-2 flex-shrink-0 mt-0.5" size={18} />
-              <p className="text-amber-800">Found {mergedMissingWords.length} words that we haven't seen before.</p>
+              <p className="text-amber-800">Found {unselectedMissingWords.length} words that we haven't seen before.</p>
             </div>
             <div className="flex items-center">
               <button 

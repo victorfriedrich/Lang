@@ -9,11 +9,24 @@ interface OverdueWord {
   next_review_due_at: string;
 }
 
-export const useOverdueWords = (refreshTrigger: number) => {
+interface UseOverdueWordsOptions {
+  dueType?: 'today' | 'overdue' | 'both';
+  pageSize?: number;
+}
+
+export const useOverdueWords = (
+  refreshTrigger: number,
+  options: UseOverdueWordsOptions = {}
+) => {
   const [overdueWords, setOverdueWords] = useState<OverdueWord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { language } = useContext(UserContext)
+  const { language } = useContext(UserContext);
+
+  const {
+    dueType = 'both',
+    pageSize = 225,
+  } = options;
 
   useEffect(() => {
     const fetchOverdueWords = async () => {
@@ -21,15 +34,15 @@ export const useOverdueWords = (refreshTrigger: number) => {
       setError(null);
       try {
         const { data, error } = await supabase.rpc('get_overdue_words', {
-          language_filter: language?.name.toLowerCase()
+          language_filter: language?.name.toLowerCase(),
+          due_type: dueType,
+          page_size: pageSize,
         });
 
         if (error) {
           console.error('Supabase error:', error);
           throw error;
         }
-
-        console.log('Function result:', data);
 
         setOverdueWords(data);
       } catch (err) {
@@ -40,7 +53,8 @@ export const useOverdueWords = (refreshTrigger: number) => {
     };
 
     fetchOverdueWords();
-  }, [refreshTrigger]); // Add refreshTrigger to the dependency array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger, language, dueType, pageSize]);
 
   return { overdueWords, isLoading, error };
 };

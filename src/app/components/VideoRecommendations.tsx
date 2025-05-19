@@ -3,27 +3,24 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Loader2 } from 'lucide-react';
 import Wordpanel from '../components/Wordpanel';
-import { useVideoRecommendations } from '../hooks/useVideoRecommendations';
+import { useVideoRecommendations } from '../hooks/useAdvancedVideoRecommendations';
 import ConfirmationPopup from '../components/ConfirmationPopup';
 import { UserContext } from '@/context/UserContext';
 
 const YouTubeVideoGrid: React.FC = () => {
   const { language } = useContext(UserContext);
   const [selectedCategory, setSelectedCategory] = useState<string>('All Videos');
-  const { videos, categories, isVideosLoading, isCategoriesLoading, error } =
-    useVideoRecommendations(selectedCategory, language?.code || 'es');
-
+  const { videos, categories, isVideosLoading, isCategoriesLoading, error } = useVideoRecommendations(
+    selectedCategory,
+    language?.code || 'es'
+  );
   const [selectedVideo, setSelectedVideo] = useState<{ id: string; title: string } | null>(null);
-  const [confirmationPopup, setConfirmationPopup] = useState<{ count: number; visible: boolean }>({
-    count: 0,
-    visible: false,
-  });
+  const [confirmationPopup, setConfirmationPopup] = useState<{ count: number; visible: boolean }>({ count: 0, visible: false });
   const [loadedVideos, setLoadedVideos] = useState<Set<string>>(new Set());
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Set up IntersectionObserver to lazy-load video thumbnails
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
@@ -40,18 +37,24 @@ const YouTubeVideoGrid: React.FC = () => {
     );
 
     return () => {
-      observerRef.current?.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
     };
   }, []);
 
-  // Observe video containers whenever the list changes
   useEffect(() => {
     const observer = observerRef.current;
     if (observer) {
-      document.querySelectorAll('.video-container').forEach((el) => observer.observe(el));
+      document.querySelectorAll('.video-container').forEach((el) => {
+        observer.observe(el);
+      });
     }
+
     return () => {
-      observer?.disconnect();
+      if (observer) {
+        observer.disconnect();
+      }
     };
   }, [videos]);
 
@@ -74,10 +77,7 @@ const YouTubeVideoGrid: React.FC = () => {
     setSelectedCategory(category);
   };
 
-  // Remove categories labeled 'Failed' or 'Unknown'
-  const filteredCategories = categories.filter(
-    (c) => !/^(failed|unknown)$/i.test(c.category.trim())
-  );
+  const filteredCategories = categories.filter((category) => !/^(failed|unknown)$/i.test(category.category.trim()));
 
   if (isCategoriesLoading) {
     return (
@@ -94,26 +94,19 @@ const YouTubeVideoGrid: React.FC = () => {
   return (
     <div className="container mx-auto p-4 relative">
       <h1 className="text-2xl font-bold mb-4">Videos</h1>
-
-      <div className="flex justify-between mb-4">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex justify-between">
+        <div className="flex flex-wrap gap-2 mb-4">
           {filteredCategories.map((category) => (
             <button
               key={category.category}
               onClick={() => handleCategoryChange(category.category)}
-              className={`px-4 py-2 rounded ${
-                selectedCategory === category.category
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700'
-              }`}
+              className={`px-4 py-2 rounded ${selectedCategory === category.category ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
             >
               {category.category}
             </button>
           ))}
         </div>
-        {/* Language selection handled by UserContext */}
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isVideosLoading ? (
           <div className="flex justify-center items-center col-span-full">
@@ -128,40 +121,35 @@ const YouTubeVideoGrid: React.FC = () => {
               <div
                 className="aspect-w-16 aspect-h-8 h-40 video-container relative"
                 data-video-id={video.id}
-                onClick={() => setPlayingVideoId(video.id)}
               >
                 {playingVideoId === video.id ? (
                   <iframe
                     src={`https://www.youtube.com/embed/${video.id}`}
                     frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; cc-load-policy=1; cc-lang-pref=${language?.code ||
-                      'es'}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; cc-load-policy=1; cc-lang-pref=es"
                     allowFullScreen
                     className="w-full h-full"
                   ></iframe>
                 ) : (
-                  loadedVideos.has(video.id) && (
-                    <>
-                      <img
-                        src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
-                        alt={video.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-14 w-14 text-white opacity-90"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
-                    </>
-                  )
+                  <div className="w-full h-full relative" onClick={() => setPlayingVideoId(video.id)}>
+                    <img
+                      src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
+                      alt={video.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-14 w-14 text-white opacity-90"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
                 )}
               </div>
-
               <div className="px-4 pt-2 pb-0 flex-1 flex flex-col">
                 <div
                   className="text-base font-semibold text-gray-900 line-clamp-2 mb-2"
@@ -176,7 +164,6 @@ const YouTubeVideoGrid: React.FC = () => {
                   {video.title}
                 </div>
               </div>
-
               <div className="p-4 group relative pt-2 mt-auto border-t border-gray-100">
                 <div className="flex justify-between items-center">
                   <div>
@@ -186,8 +173,10 @@ const YouTubeVideoGrid: React.FC = () => {
                     <div className="text-sm text-gray-500">words known</div>
                   </div>
                   <div className="text-right md:group-hover:opacity-0 ml-auto mr-8 md:mx-0 transition-opacity duration-200">
-                    <div className="text-md font-medium">{video.newWords}</div>
-                    <div className="text-sm text-gray-500">new words</div>
+                    <div className="text-md font-medium">
+                      ({video.usefulWords}) {video.newWords}
+                    </div>
+                    <div className="text-sm text-gray-500">(prioritized) new words</div>
                   </div>
                   <button
                     className="md:absolute md:right-4 md:top-1/2 md:transform md:-translate-y-1/2 px-3 py-1 bg-black text-white rounded-md flex items-center space-x-1 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-gray-800 hover:scale-105"
@@ -215,7 +204,7 @@ const YouTubeVideoGrid: React.FC = () => {
 
       {selectedVideo && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
           onClick={() => setSelectedVideo(null)}
         >
           <Wordpanel

@@ -45,7 +45,7 @@ export default function ImportPage() {
       ) : (
         // Show the importer if we don't have data yet
         <VocabularyImporter 
-          onBack={() => router.push('/flashcards')}
+          onBack={() => router.push('/progress')}
           onComplete={handleUploadComplete}
         />
       )}

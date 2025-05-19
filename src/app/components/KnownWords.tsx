@@ -30,6 +30,7 @@ const formatStatus = (status: string): string => {
 const KnownWords: React.FC<KnownWordsProps> = ({ searchTerm }) => {
   const [orderDirection, setOrderDirection] = useState<'ASC' | 'DESC'>('ASC');
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [displayWords, setDisplayWords] = useState<Word[]>([]);
 
@@ -94,6 +95,22 @@ const KnownWords: React.FC<KnownWordsProps> = ({ searchTerm }) => {
     setOrderDirection((prev) => (prev === 'ASC' ? 'DESC' : 'ASC'));
   };
 
+  // Shift-select logic for rows
+  const handleRowClick = (e: React.MouseEvent, index: number, wordId: number) => {
+    if (e.shiftKey && lastSelectedIndex !== null) {
+      e.preventDefault();
+      const rangeStart = Math.min(index, lastSelectedIndex);
+      const rangeEnd = Math.max(index, lastSelectedIndex);
+      const newSelectedWords = displayWords
+        .slice(rangeStart, rangeEnd + 1)
+        .map(word => word.word_id);
+      setSelectedWords(prev => Array.from(new Set([...prev, ...newSelectedWords])));
+    } else {
+      toggleWordSelection(wordId);
+      setLastSelectedIndex(index);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-white">
       <style jsx global>{`
@@ -106,7 +123,10 @@ const KnownWords: React.FC<KnownWordsProps> = ({ searchTerm }) => {
         }
       `}</style>
       <div className="flex-grow overflow-auto hide-scrollbar pb-16">
-        <table className="w-full divide-y divide-gray-200">
+        <table 
+          className="w-full divide-y divide-gray-200"
+          onMouseDown={(e) => e.shiftKey && e.preventDefault()}
+        >
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th className="w-12 px-3 py-3">
@@ -134,18 +154,18 @@ const KnownWords: React.FC<KnownWordsProps> = ({ searchTerm }) => {
               const isLastWord = displayWords.length === index + 1;
               return (
                 <tr
-                  key={`${word.word_id}-${index}`} // Ensure uniqueness
+                  key={`${word.word_id}-${index}`}
                   ref={isLastWord ? lastWordRef : null}
                   className="hover:bg-gray-50 cursor-pointer"
                   onMouseEnter={() => setHoveredRow(word.word_id)}
                   onMouseLeave={() => setHoveredRow(null)}
-                  onClick={() => toggleWordSelection(word.word_id)}
+                  onClick={(e) => handleRowClick(e, index, word.word_id)}
                 >
                   <td className="w-12 px-3 py-4">
                     <input
                       type="checkbox"
                       checked={selectedWords.includes(word.word_id)}
-                      onChange={() => toggleWordSelection(word.word_id)}
+                      onChange={(e) => handleRowClick(e as any, index, word.word_id)}
                       className="form-checkbox h-4 w-4 text-blue-600"
                       onClick={(e) => e.stopPropagation()}
                     />
@@ -199,7 +219,7 @@ const KnownWords: React.FC<KnownWordsProps> = ({ searchTerm }) => {
           disabled={selectedWords.length === 0}
           onClick={handleAddToUserwords}
         >
-          Move {selectedWords.length} {selectedWords.length === 1 ? 'Word' : 'Words'} to Practice Again
+          Move {selectedWords.length} {selectedWords.length === 1 ? 'Word' : 'Words'} to Flashcard Practice
         </button>
       </div>
     </div>

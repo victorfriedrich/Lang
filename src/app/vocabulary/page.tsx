@@ -60,10 +60,13 @@ const VocabularyLearnerWithStreak = () => {
   };
 
   if (showSession) {
-    // Filter out any words without required properties and add validation
+    // Include all due words, and set translation to a fallback if missing
     const validWords = wordsDueToday.filter(word => 
-      word && word.word_id && (word.word_root || word.root) && word.translation
-    );
+      word && word.word_id && (word.word_root || word.root)
+    ).map(word => ({
+      ...word,
+      translation: word.translation || 'No translation available',
+    }));
     
     return (
       <FlashcardSession

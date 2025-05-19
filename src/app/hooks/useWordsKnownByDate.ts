@@ -8,30 +8,33 @@ interface WordsKnownData {
 }
 
 export const useWordsKnownByDate = () => {
-  const { user } = useContext(UserContext);
+  const { user, language } = useContext(UserContext);
   const [wordsKnownData, setWordsKnownData] = useState<WordsKnownData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { language } = useContext(UserContext)
 
   useEffect(() => {
-    if (user) {
+    // Only fetch when both user and language are available
+    if (user && language?.name) {
       fetchWordsKnownData();
     }
-  }, [user]);
+  }, [user, language]);
 
   const fetchWordsKnownData = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase.rpc('words_known_by_date', {
-        language_filter: language?.name.toLowerCase()
-      });
+      // Safely derive the language filter, with a fallback if needed
+      const langFilter = language?.name.toLowerCase() ?? '';
+      const { data, error: rpcError } = await supabase.rpc(
+        'words_known_by_date',
+        { language_filter: langFilter }
+      );
 
-      if (error) throw error;
+      if (rpcError) throw rpcError;
 
-      setWordsKnownData(data);
+      setWordsKnownData(data as WordsKnownData[]);
     } catch (err) {
       console.error('Error fetching words known by date:', err);
       setError('Failed to fetch words known by date');

@@ -2,7 +2,8 @@
 
 import YouTubeVideoGrid from '../components/YouTubeVideoGrid';
 import ProtectedRoute from '../components/ProtectedRoute';
+import VideoRecommendations from '../components/VideoRecommendations';
 
 export default function VideosPage() {
-  return <ProtectedRoute><YouTubeVideoGrid /></ProtectedRoute>;
+  return <ProtectedRoute><VideoRecommendations /></ProtectedRoute>;
 }

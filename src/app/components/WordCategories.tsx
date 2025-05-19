@@ -74,7 +74,7 @@ const WordCategories: React.FC<WordCategoriesProps> = ({ language, selectedCateg
   if (!selectedCategory) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
-        Please select a category to see word recommendations
+        Select a category above to see its most common words you haven't added yet.
       </div>
     );
   }

@@ -1,12 +1,22 @@
 "use client";
 
-import React, { useMemo, useState, useRef, useLayoutEffect, useEffect } from 'react';
-import { useUnseenWords } from '../hooks/useUnseenWords';
-import { useFetchTotalWordsKnown } from '../hooks/useFetchTotalWordsKnown';
-import { useUniqueLearned } from '../hooks/useUniqueLearned';
-import { useWordsKnownByDate } from '../hooks/useWordsKnownByDate';
-import { useCategories } from '../hooks/useCategories';
-import { Line } from 'react-chartjs-2';
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useLayoutEffect,
+  useEffect,
+} from "react";
+import { useRouter } from "next/navigation";
+import { ArrowUpRight } from "lucide-react";
+
+import { useUnseenWords } from "../hooks/useUnseenWords";
+import { useFetchTotalWordsKnown } from "../hooks/useFetchTotalWordsKnown";
+import { useUniqueLearned } from "../hooks/useUniqueLearned";
+import { useWordsKnownByDate } from "../hooks/useWordsKnownByDate";
+import { useCategories } from "../hooks/useCategories";
+
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,13 +26,14 @@ import {
   Title,
   Tooltip,
   Filler,
-} from 'chart.js';
-import ProtectedRoute from '../components/ProtectedRoute';
-import LoadingState from '../components/LoadingState';
-import ErrorState from '../components/ErrorState';
-import ProgressBar from '../components/ProgressBar';
-import KnownWords from '../components/KnownWords';
-import WordCategories from '../components/WordCategories';
+} from "chart.js";
+
+import ProtectedRoute from "../components/ProtectedRoute";
+import LoadingState from "../components/LoadingState";
+import ErrorState from "../components/ErrorState";
+import ProgressBar from "../components/ProgressBar";
+import KnownWords from "../components/KnownWords";
+import WordCategories from "../components/WordCategories";
 
 ChartJS.register(
   CategoryScale,
@@ -35,37 +46,54 @@ ChartJS.register(
 );
 
 const ProgressPage = () => {
-  const [selectedView, setSelectedView] = useState('editVocabulary');
+  const [selectedView, setSelectedView] = useState("editVocabulary");
   const [underlineStyle, setUnderlineStyle] = useState({});
   const editRef = useRef(null);
   const addRef = useRef(null);
+  const router = useRouter();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    null
+  );
 
-  const { unseenWords, isLoading: unseenLoading, error: unseenError } = useUnseenWords();
-  const { totalWordsKnown, isLoading: totalLoading, error: totalError } = useFetchTotalWordsKnown();
-  const { uniqueLearned, isLoading: uniqueLoading, error: uniqueError } = useUniqueLearned();
-  const { wordsKnownData, isLoading: wordsKnownLoading, error: wordsKnownError } = useWordsKnownByDate();
-  const { categories, isLoading: categoriesLoading } = useCategories('es');
+  const { unseenWords, isLoading: unseenLoading, error: unseenError } =
+    useUnseenWords();
+  const {
+    totalWordsKnown,
+    isLoading: totalLoading,
+    error: totalError,
+  } = useFetchTotalWordsKnown();
+  const {
+    uniqueLearned,
+    isLoading: uniqueLoading,
+    error: uniqueError,
+  } = useUniqueLearned();
+  const {
+    wordsKnownData,
+    isLoading: wordsKnownLoading,
+    error: wordsKnownError,
+  } = useWordsKnownByDate();
+  const { categories, isLoading: categoriesLoading } = useCategories("es");
 
   useLayoutEffect(() => {
     const updateUnderline = () => {
-      const targetRef = selectedView === 'editVocabulary' ? editRef : addRef;
+      const targetRef =
+        selectedView === "editVocabulary" ? editRef : addRef;
       if (targetRef.current) {
         const { offsetLeft, offsetWidth } = targetRef.current;
         setUnderlineStyle({
           left: `${offsetLeft}px`,
           width: `${offsetWidth}px`,
-          transition: 'all 0.3s ease-in-out',
+          transition: "all 0.3s ease-in-out",
         });
       }
     };
 
     updateUnderline();
-    window.addEventListener('resize', updateUnderline);
-    return () => window.removeEventListener('resize', updateUnderline);
+    window.addEventListener("resize", updateUnderline);
+    return () => window.removeEventListener("resize", updateUnderline);
   }, [selectedView]);
 
   useEffect(() => {
@@ -78,18 +106,19 @@ const ProgressPage = () => {
     };
   }, [searchTerm]);
 
-  // Reset category when switching views
   useEffect(() => {
     setSelectedCategory(null);
-    setSearchTerm('');
+    setSearchTerm("");
   }, [selectedView]);
 
   const chartData = useMemo(() => {
-    const labels = wordsKnownData.map(item => item.date);
-    const data = wordsKnownData.map(item => Math.round(item.words_known));
+    const labels = wordsKnownData.map((item) => item.date);
+    const data = wordsKnownData.map((item) =>
+      Math.round(item.words_known)
+    );
 
     const uniqueLabels = [...new Set(labels)];
-    const uniqueData = uniqueLabels.map(date => {
+    const uniqueData = uniqueLabels.map((date) => {
       const index = labels.indexOf(date);
       return data[index];
     });
@@ -101,14 +130,16 @@ const ProgressPage = () => {
 
     return {
       labels: uniqueLabels,
-      datasets: [{
-        label: 'Words Known',
-        data: uniqueData,
-        fill: true,
-        backgroundColor: 'rgba(60, 130, 250, 0.2)',
-        borderColor: 'rgb(60, 130, 250)',
-        tension: 0,
-      }],
+      datasets: [
+        {
+          label: "Words Known",
+          data: uniqueData,
+          fill: true,
+          backgroundColor: "rgba(60, 130, 250, 0.2)",
+          borderColor: "rgb(60, 130, 250)",
+          tension: 0,
+        },
+      ],
     };
   }, [wordsKnownData]);
 
@@ -126,7 +157,7 @@ const ProgressPage = () => {
         ticks: {
           stepSize: 2,
           precision: 0,
-          font: { size: 14 }
+          font: { size: 14 },
         },
         grid: { drawBorder: false },
       },
@@ -136,29 +167,51 @@ const ProgressPage = () => {
           maxRotation: 0,
           autoSkip: false,
           padding: 10,
-          align: 'inner',
+          align: "inner",
         },
         grid: { drawBorder: false },
-      }
+      },
     },
     layout: {
       padding: {
         left: 10,
         right: 10,
         top: 10,
-        bottom: -10
-      }
+        bottom: -10,
+      },
     },
   };
 
-  if (unseenLoading || totalLoading || uniqueLoading || wordsKnownLoading) return <LoadingState />;
-  if (unseenError || totalError || uniqueError || wordsKnownError) return <ErrorState message={unseenError || totalError || uniqueError || wordsKnownError || 'An error occurred'} />;
+  if (
+    unseenLoading ||
+    totalLoading ||
+    uniqueLoading ||
+    wordsKnownLoading
+  )
+    return <LoadingState />;
+  if (
+    unseenError ||
+    totalError ||
+    uniqueError ||
+    wordsKnownError
+  )
+    return (
+      <ErrorState
+        message={
+          unseenError ||
+          totalError ||
+          uniqueError ||
+          wordsKnownError ||
+          "An error occurred"
+        }
+      />
+    );
 
   return (
     <ProtectedRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <h1 className="text-3xl font-bold mb-6">Your Learning Progress</h1>
-        
+
         {/* Stats Section */}
         <div className="flex flex-col lg:flex-row gap-8 mb-8">
           <div className="lg:w-1/2 bg-white p-4 rounded-lg shadow">
@@ -168,13 +221,15 @@ const ProgressPage = () => {
           <div className="lg:w-1/2 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-2">Total Words Known</h2>
-              <p className="text-3xl mb-2 font-bold text-blue-600">{totalWordsKnown}</p>
-              <ProgressBar value={totalWordsKnown} max={totalWordsKnown + 120} />
+              <p className="text-3xl mb-2 font-bold text-blue-600">
+                {totalWordsKnown}
+              </p>
             </div>
             <div className="bg-white p-4 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-2">Words Learned</h2>
-              <p className="text-3xl mb-2 font-bold text-blue-600">{uniqueLearned}</p>
-              <ProgressBar value={uniqueLearned} max={75} />
+              <p className="text-3xl mb-2 font-bold text-blue-600">
+                {uniqueLearned}
+              </p>
             </div>
           </div>
         </div>
@@ -186,28 +241,36 @@ const ProgressPage = () => {
               <button
                 ref={editRef}
                 className={`py-2 px-4 font-semibold ${
-                  selectedView === 'editVocabulary'
-                    ? 'text-blue-600'
-                    : 'text-gray-600 hover:text-gray-800'
+                  selectedView === "editVocabulary"
+                    ? "text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
                 }`}
-                onClick={() => setSelectedView('editVocabulary')}
+                onClick={() => setSelectedView("editVocabulary")}
               >
-                Your Vocabulary
+                Known Words
               </button>
               <button
                 ref={addRef}
                 className={`py-2 px-4 font-semibold ${
-                  selectedView === 'addNewWords'
-                    ? 'text-blue-600'
-                    : 'text-gray-600 hover:text-gray-800'
+                  selectedView === "addNewWords"
+                    ? "text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
                 }`}
-                onClick={() => setSelectedView('addNewWords')}
+                onClick={() => setSelectedView("addNewWords")}
               >
-                Add New Words
+                Add Common Words
+              </button>
+              <button
+                onClick={() => router.push("/import")}
+                className="py-2 px-4 font-semibold text-gray-600 hover:text-gray-800 flex items-center gap-1"
+              >
+                Import
+                <ArrowUpRight className="h-4 w-4 mt-0.5" />
               </button>
             </div>
+
             <div className="ml-auto mr-4">
-              {selectedView === 'editVocabulary' ? (
+              {selectedView === "editVocabulary" ? (
                 <input
                   type="text"
                   placeholder="Search..."
@@ -217,7 +280,7 @@ const ProgressPage = () => {
                 />
               ) : (
                 <select
-                  value={selectedCategory || ''}
+                  value={selectedCategory || ""}
                   onChange={(e) => setSelectedCategory(e.target.value || null)}
                   className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={categoriesLoading}
@@ -231,6 +294,7 @@ const ProgressPage = () => {
                 </select>
               )}
             </div>
+
             <div
               className="absolute bottom-0 h-0.5 bg-blue-600"
               style={underlineStyle}
@@ -239,13 +303,10 @@ const ProgressPage = () => {
 
           {/* Content Section */}
           <div className="border border-gray-200">
-            {selectedView === 'editVocabulary' ? (
+            {selectedView === "editVocabulary" ? (
               <KnownWords searchTerm={debouncedSearchTerm} />
             ) : (
-              <WordCategories 
-                language='es' 
-                selectedCategory={selectedCategory}
-              />
+              <WordCategories language="es" selectedCategory={selectedCategory} />
             )}
           </div>
         </div>

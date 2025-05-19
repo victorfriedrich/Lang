@@ -341,21 +341,17 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
                 )}
                 
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Tips for best results:</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">How to import:</h3>
                   <ul className="text-xs text-gray-600 space-y-1">
                     {importSource === 'anki' && (
                       <>
                         <li className="flex items-start">
                           <span className="text-blue-500 mr-1">•</span>
-                          Use exported Anki packages (.apkg files)
+                          Export a single collection as .apkg file. Don't embed media.
                         </li>
                         <li className="flex items-start">
                           <span className="text-blue-500 mr-1">•</span>
-                          Media embedded in cards will be imported as well
-                        </li>
-                        <li className="flex items-start">
-                          <span className="text-blue-500 mr-1">•</span>
-                          Tags and card formatting will be preserved
+                          Cards ideally only consider single spanish words on the origin side.
                         </li>
                       </>
                     )}
@@ -364,7 +360,7 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
                       <>
                         <li className="flex items-start">
                           <span className="text-blue-500 mr-1">•</span>
-                          Export your Quizlet set as a CSV or text file
+                          Export your Quizlet set as a CSV. If you're not the owner, you have to create a copy first.
                         </li>
                         <li className="flex items-start">
                           <span className="text-blue-500 mr-1">•</span>
