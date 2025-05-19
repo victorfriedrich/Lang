@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useContext } from 'react';
-import { Upload, Camera, FileText, Package, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Package, ArrowLeft, AlertCircle } from 'lucide-react';
 import { UserContext } from '@/context/UserContext';
 
 const VocabularyImporter = ({ onBack, onComplete }) => {
-  const [importSource, setImportSource] = useState(null); // 'anki', 'quizlet', 'camera'
+  const [importSource, setImportSource] = useState(null); // 'anki', 'quizlet'
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState(null);
@@ -15,7 +14,6 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
   
   // References for file inputs
   const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
   
   // Get context data
   const { fetchWithAuth, language } = useContext(UserContext);
@@ -28,20 +26,6 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
     
     // Set the file and reset any errors
     setUploadedFile(file);
-    setUploadError(null);
-    
-    // Upload immediately
-    uploadFile(file);
-  };
-  
-  // Handle camera capture
-  const handleCameraCapture = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // Create URL for preview
-    const imageUrl = URL.createObjectURL(file);
-    setCapturedImage(imageUrl);
     setUploadError(null);
     
     // Upload immediately
@@ -165,18 +149,7 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
                 </div>
               </button>
               
-              <button
-                onClick={() => handleImportSelection('camera')}
-                className="w-full flex items-start p-4 text-left bg-white border border-gray-200 rounded-xl hover:shadow-md transform hover:-translate-y-1 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-100"
-              >
-                <div className="flex-shrink-0 mr-4 mt-1 p-2 rounded-lg bg-blue-50">
-                  <Camera size={24} className="text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">Take a photo</h3>
-                  <p className="mt-1 text-sm text-gray-500">Capture vocabulary from printed material</p>
-                </div>
-              </button>
+              {/* Camera option removed - will be implemented later */}
             </div>
           </div>
         </>
@@ -191,7 +164,6 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
               onClick={() => {
                 setImportSource(null);
                 setUploadedFile(null);
-                setCapturedImage(null);
                 setUploadProgress(0);
                 setUploadError(null);
                 setIsUploading(false);
@@ -207,18 +179,15 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
               <div className="w-12 h-12 flex items-center justify-center bg-white bg-opacity-50 rounded-lg">
                 {importSource === 'anki' && <Package size={24} className="text-blue-600" />}
                 {importSource === 'quizlet' && <FileText size={24} className="text-blue-600" />}
-                {importSource === 'camera' && <Camera size={24} className="text-blue-600" />}
               </div>
               <div className="ml-4">
                 <h2 className="text-xl font-bold mb-1">
                   {importSource === 'anki' && 'Import from Anki'}
                   {importSource === 'quizlet' && 'Import from Quizlet'}
-                  {importSource === 'camera' && 'Capture from Textbook'}
                 </h2>
                 <p className="text-sm opacity-75">
                   {importSource === 'anki' && 'Upload your Anki deck file (.apkg)'}
                   {importSource === 'quizlet' && 'Upload your exported Quizlet file (.csv, .txt)'}
-                  {importSource === 'camera' && 'Take a clear photo of your vocabulary list'}
                 </p>
               </div>
             </div>
@@ -237,23 +206,7 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
               </div>
             )}
             
-            {capturedImage ? (
-              <div className="space-y-4">
-                {isUploading && uploadProgress > 0 && (
-                  <div className="w-full">
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-600 transition-all duration-200"
-                        style={{ width: `${uploadProgress}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2 text-center">
-                      Uploading... {uploadProgress}%
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : uploadedFile ? (
+            {uploadedFile ? (
               <div className="space-y-4">
                 {isUploading && uploadProgress > 0 && (
                   <div className="w-full">
@@ -271,74 +224,43 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
               </div>
             ) : (
               <div>
-                {importSource === 'camera' ? (
-                  <div 
-                    onClick={() => !isUploading && cameraInputRef.current && cameraInputRef.current.click()}
-                    className={`border-2 border-dashed border-gray-300 rounded-lg p-8 text-center ${isUploading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-blue-300'} transition-colors`}
-                  >
-                    <div className="mx-auto w-20 h-20 flex items-center justify-center bg-gray-100 rounded-full mb-4">
-                      <Camera size={36} className="text-gray-500" />
-                    </div>
-                    <p className="text-gray-700 font-medium mb-2">Take a picture of your textbook</p>
-                    <p className="text-sm text-gray-500 mb-6">
-                      Position your camera to capture the vocabulary clearly
-                    </p>
-                    <button 
-                      className={`py-2 px-4 ${isUploading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium rounded-md inline-flex items-center`}
-                      disabled={isUploading}
-                    >
-                      <Camera size={18} className="mr-2" />
-                      Open Camera
-                    </button>
-                    <input 
-                      type="file"
-                      accept="image/*"
-                      ref={cameraInputRef}
-                      onChange={handleCameraCapture}
-                      className="hidden" 
-                      capture="environment"
-                      disabled={isUploading}
-                    />
+                <div 
+                  onClick={() => !isUploading && fileInputRef.current && fileInputRef.current.click()}
+                  onDragEnter={!isUploading ? handleDrag : null}
+                  onDragLeave={!isUploading ? handleDrag : null}
+                  onDragOver={!isUploading ? handleDrag : null}
+                  onDrop={!isUploading ? handleDrop : null}
+                  className={`border-2 border-dashed ${
+                    isUploading 
+                      ? 'border-gray-300 cursor-not-allowed opacity-70' 
+                      : dragActive 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-300 hover:border-blue-300 cursor-pointer'
+                  } rounded-lg p-8 text-center transition-all duration-200`}
+                >
+                  <div className={`mx-auto w-20 h-20 flex items-center justify-center ${dragActive && !isUploading ? 'bg-blue-100' : 'bg-gray-100'} rounded-full mb-4 transition-colors duration-200`}>
+                    <Upload size={36} className={`${dragActive && !isUploading ? 'text-blue-500' : 'text-gray-500'} transition-colors duration-200`} />
                   </div>
-                ) : (
-                  <div 
-                    onClick={() => !isUploading && fileInputRef.current && fileInputRef.current.click()}
-                    onDragEnter={!isUploading ? handleDrag : null}
-                    onDragLeave={!isUploading ? handleDrag : null}
-                    onDragOver={!isUploading ? handleDrag : null}
-                    onDrop={!isUploading ? handleDrop : null}
-                    className={`border-2 border-dashed ${
-                      isUploading 
-                        ? 'border-gray-300 cursor-not-allowed opacity-70' 
-                        : dragActive 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-300 hover:border-blue-300 cursor-pointer'
-                    } rounded-lg p-8 text-center transition-all duration-200`}
+                  <p className="text-gray-700 font-medium mb-2">Drag and drop your file here</p>
+                  <p className="text-sm text-gray-500 mb-6">
+                    or click to browse your files
+                  </p>
+                  <button 
+                    className={`py-2 px-4 ${isUploading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium rounded-md inline-flex items-center`}
+                    disabled={isUploading}
                   >
-                    <div className={`mx-auto w-20 h-20 flex items-center justify-center ${dragActive && !isUploading ? 'bg-blue-100' : 'bg-gray-100'} rounded-full mb-4 transition-colors duration-200`}>
-                      <Upload size={36} className={`${dragActive && !isUploading ? 'text-blue-500' : 'text-gray-500'} transition-colors duration-200`} />
-                    </div>
-                    <p className="text-gray-700 font-medium mb-2">Drag and drop your file here</p>
-                    <p className="text-sm text-gray-500 mb-6">
-                      or click to browse your files
-                    </p>
-                    <button 
-                      className={`py-2 px-4 ${isUploading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium rounded-md inline-flex items-center`}
-                      disabled={isUploading}
-                    >
-                      <Upload size={18} className="mr-2" />
-                      Browse Files
-                    </button>
-                    <input 
-                      type="file"
-                      accept={importSource === 'anki' ? '.apkg' : '.csv,.txt'}
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      className="hidden"
-                      disabled={isUploading}
-                    />
-                  </div>
-                )}
+                    <Upload size={18} className="mr-2" />
+                    Browse Files
+                  </button>
+                  <input 
+                    type="file"
+                    accept={importSource === 'anki' ? '.apkg' : '.csv,.txt'}
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                </div>
                 
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">How to import:</h3>
@@ -347,11 +269,15 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
                       <>
                         <li className="flex items-start">
                           <span className="text-blue-500 mr-1">•</span>
-                          Export a single collection as .apkg file. Don't embed media.
+                          Use exported Anki packages (.apkg files)
                         </li>
                         <li className="flex items-start">
                           <span className="text-blue-500 mr-1">•</span>
-                          Cards ideally only consider single spanish words on the origin side.
+                          Media embedded in cards will be imported as well
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-blue-500 mr-1">•</span>
+                          Tags and card formatting will be preserved
                         </li>
                       </>
                     )}
@@ -369,23 +295,6 @@ const VocabularyImporter = ({ onBack, onComplete }) => {
                         <li className="flex items-start">
                           <span className="text-blue-500 mr-1">•</span>
                           Include any tags or categories if available
-                        </li>
-                      </>
-                    )}
-                    
-                    {importSource === 'camera' && (
-                      <>
-                        <li className="flex items-start">
-                          <span className="text-blue-500 mr-1">•</span>
-                          Ensure good lighting and clear focus
-                        </li>
-                        <li className="flex items-start">
-                          <span className="text-blue-500 mr-1">•</span>
-                          Keep the page flat and avoid shadows
-                        </li>
-                        <li className="flex items-start">
-                          <span className="text-blue-500 mr-1">•</span>
-                          Capture only the vocabulary section
                         </li>
                       </>
                     )}
