@@ -58,12 +58,14 @@ const useLearningWords = ({
     setLoading(true);
     setError(null);
 
+    console.log("Search term " + searchTerm.trim())
+
     try {
       const { data, error: fetchError } = await supabase.rpc('get_learning_words', {
         order_direction: orderDirection,
         cursor_days_due: lastFetchedReviewDueRef.current, // may be null on first fetch
         cursor_word_id: lastFetchedWordIdRef.current || 0, // tie-breaker, defaults to 0
-        search_term: searchTerm,
+        search_term: searchTerm.trim(),
         page_size: pageSize,
         language_filter: language?.name.toLowerCase(),
       });

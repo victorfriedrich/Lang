@@ -64,6 +64,8 @@ const LearningWordsTable: React.FC = () => {
    */
   useEffect(() => {
     const handler = setTimeout(() => {
+      const trimmedSearch = search.trim();
+      console.log('Debounced search (after trim):', trimmedSearch);
       setDebouncedSearch(search.trim() || '');
     }, 500);
     return () => clearTimeout(handler);
@@ -73,9 +75,9 @@ const LearningWordsTable: React.FC = () => {
    * Whenever debouncedSearch changes, trigger a fresh fetch.
    * (Depending on your custom hook, you may or may not need this.)
    */
-  useEffect(() => {
-    fetchWords(); // Re-fetch from page 1 with new searchTerm
-  }, [debouncedSearch, fetchWords]);
+  // useEffect(() => {
+  //   fetchWords(); // Re-fetch from page 1 with new searchTerm
+  // }, [debouncedSearch, fetchWords]);
 
   /**
    * Update displayed words when new data arrives

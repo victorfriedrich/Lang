@@ -9,7 +9,7 @@ interface ReviewSectionProps {
 const ReviewSection: React.FC<ReviewSectionProps> = ({ wordsDueToday, onStartReview }) => (
   <div className="flex items-center justify-between">
     <div>
-      <p className="text-2xl font-bold text-gray-800">{wordsDueToday.length}{wordsDueToday.length >= 30 ? '+' : ''}</p>
+      <p className="text-2xl font-bold text-gray-800">{wordsDueToday.length}{wordsDueToday.length >= 225 ? '+' : ''}</p>
       <p className="text-md text-gray-600">{wordsDueToday.length === 1 ? 'word' : 'words'} to practice</p>
     </div>
     <button
