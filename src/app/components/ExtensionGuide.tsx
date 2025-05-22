@@ -9,7 +9,7 @@ export default function ExtensionGuide() {
     const handleDownload = () => {
         // Create an anchor element to handle the download
         const downloadLink = document.createElement('a');
-        downloadLink.href = 'https://xpovcmbrttmkhnrfspvo.supabase.co/storage/v1/object/sign/downloads/dist.zip?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJkb3dubG9hZHMvZGlzdC56aXAiLCJpYXQiOjE3MzY3MTg2NDIsImV4cCI6MTc2ODI1NDY0Mn0.Wnb7-HxrlMBCVgPZHqqLNPbqCpBzAg25hpsjy632VoU&t=2025-01-12T21%3A50%3A42.204Z';
+        downloadLink.href = 'https://xpovcmbrttmkhnrfspvo.supabase.co/storage/v1/object/sign/downloads/dist.zip?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5Xzc2YjQ1NTAzLTQ5ZDYtNDU2Ny05YmMxLTBjYTVmYzM3MTUxZCJ9.eyJ1cmwiOiJkb3dubG9hZHMvZGlzdC56aXAiLCJpYXQiOjE3NDc5NDk2MzcsImV4cCI6MTc3OTQ4NTYzN30.kikxPBu2d6M2Tt6cZsj2o7n4Va_Z4R1j_NUT6mbndmo';
         downloadLink.setAttribute('download', 'lang-extension.zip'); // Set a filename
         document.body.appendChild(downloadLink);
         
