@@ -47,8 +47,8 @@ const LanguageAppOnboarding: React.FC<LanguageAppOnboardingProps> = ({
   const languages: LanguageOption[] = [
     { code: 'es', name: 'Spanish', disabled: false },
     { code: 'de', name: 'German', disabled: false },
-    { code: 'it', name: 'Italian', disabled: false },
     { code: 'fr', name: 'French', disabled: false },
+    { code: 'it', name: 'Italian', disabled: true },
     { code: 'ru', name: 'Russian', disabled: true },
   ];
 
