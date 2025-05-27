@@ -84,11 +84,10 @@ const YouTubeVideoGrid: React.FC = () => {
 
   const handleCategoryChange = (category: string) => setSelectedCategory(category);
 
+  // dismiss-with-X
   const handleDismissVideo = useCallback(
     (videoId: string) => {
-      // Optimistic hide
       setDismissedVideos((prev) => new Set(prev).add(videoId));
-      // Persist as seen
       markVideoAsSeen(videoId).catch((err) => console.error(err));
     },
     [markVideoAsSeen]
@@ -125,7 +124,7 @@ const YouTubeVideoGrid: React.FC = () => {
     <div className="container mx-auto p-4 relative">
       <h1 className="text-2xl font-bold mb-4">Videos</h1>
 
-      {/* CATEGORIES */}
+      {/* ───────────── CATEGORIES ───────────── */}
       <div className="flex flex-wrap gap-2 mb-4">
         {filteredCategories.map((category) => (
           <button
@@ -140,7 +139,7 @@ const YouTubeVideoGrid: React.FC = () => {
         ))}
       </div>
 
-      {/* VIDEO GRID */}
+      {/* ───────────── VIDEO GRID ───────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {displayedVideos.length === 0 ? (
           <div className="col-span-full text-center text-gray-500">No more videos 🎉</div>
@@ -150,8 +149,9 @@ const YouTubeVideoGrid: React.FC = () => {
               key={video.id}
               className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer flex flex-col h-full relative"
             >
+              {/* subtle X button */}
               <button
-                className="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute z-20 top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto"
                 title="Hide & mark as seen"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -161,12 +161,13 @@ const YouTubeVideoGrid: React.FC = () => {
                 <X size={14} />
               </button>
 
+              {/* Thumbnail / Player */}
               <div className="aspect-w-16 aspect-h-8 h-40 video-container relative" data-video-id={video.id}>
                 {playingVideoId === video.id ? (
                   <iframe
                     src={`https://www.youtube.com/embed/${video.id}`}
                     frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; cc-load-policy=1; cc-lang-pref=${language?.code || 'es'}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; cc-load-policy=1; cc-lang-pref=es"
                     allowFullScreen
                     className="w-full h-full"
                   />
@@ -178,7 +179,12 @@ const YouTubeVideoGrid: React.FC = () => {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 text-white opacity-90" viewBox="0 0 24 24" fill="currentColor">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-14 w-14 text-white opacity-90"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     </div>
@@ -186,6 +192,7 @@ const YouTubeVideoGrid: React.FC = () => {
                 )}
               </div>
 
+              {/* Title & stats */}
               <div className="px-4 pt-2 pb-0 flex-1 flex flex-col">
                 <div
                   className="text-base font-semibold text-gray-900 line-clamp-2 mb-2"
@@ -196,6 +203,7 @@ const YouTubeVideoGrid: React.FC = () => {
                 </div>
               </div>
 
+              {/* Bottom stats & Practice btn */}
               <div className="p-4 group relative pt-2 mt-auto border-t border-gray-100">
                 <div className="flex justify-between items-center">
                   <div>
@@ -206,6 +214,7 @@ const YouTubeVideoGrid: React.FC = () => {
                     <div className="text-md font-medium">({video.usefulWords}) {video.newWords}</div>
                     <div className="text-sm text-gray-500">(prioritized) new words</div>
                   </div>
+
                   <button
                     className="md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 px-3 py-1 bg-black text-white rounded-md flex items-center space-x-1 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-gray-800 hover:scale-105"
                     onClick={(e) => {
@@ -213,7 +222,12 @@ const YouTubeVideoGrid: React.FC = () => {
                       handleVideoClick(video.id, 'New words in this video');
                     }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" />
                     </svg>
                     <span>Practice</span>
@@ -225,15 +239,15 @@ const YouTubeVideoGrid: React.FC = () => {
         )}
       </div>
 
+      {/* ───────────── WORDPANEL MODAL ───────────── */}
       {selectedVideo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setSelectedVideo(null)}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60]" onClick={() => setSelectedVideo(null)}>
           <Wordpanel videoId={selectedVideo.id} videoTitle={selectedVideo.title} onClose={handleWordpanelClose} />
         </div>
       )}
 
-      {confirmationPopup.visible && (
-        <ConfirmationPopup count={confirmationPopup.count} onClose={handleCloseConfirmationPopup} />
-      )}
+      {/* ───────────── CONFIRMATION POPUP ───────────── */}
+      {confirmationPopup.visible && <ConfirmationPopup count={confirmationPopup.count} onClose={handleCloseConfirmationPopup} />}
     </div>
   );
 };
