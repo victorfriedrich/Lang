@@ -43,7 +43,7 @@ export const useVideoRecommendations = (selectedCategory: string, language: stri
     setIsVideosLoading(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const tradeoff = 0.5;
+      const tradeoff = 1.0;
       const videoCatParam =
         selectedCategory === 'All Videos'
           ? ''

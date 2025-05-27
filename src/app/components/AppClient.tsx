@@ -7,6 +7,7 @@ import UrlParser from './UrlParser';
 import ArticleList from './ArticleList';
 import LanguageLevelSelector from './LanguageLevelSelector';
 import VideoRecommendations from './VideoRecommendations'
+import YouTubeVideoGrid from './YouTubeVideoGrid'
 import ProficiencyPage from '../get-started/page';
 import ProtectedRoute from './ProtectedRoute';
 const AppClient: React.FC = () => {
@@ -26,7 +27,7 @@ const AppClient: React.FC = () => {
     switch (pathname) {
       case '/':
         case '/ranking':
-        return <ProtectedRoute><VideoRecommendations /></ProtectedRoute>;
+        return <ProtectedRoute><YouTubeVideoGrid /></ProtectedRoute>;
       case '/articles':
         return <ProtectedRoute><ArticleList /></ProtectedRoute>;
       case '/parse':
