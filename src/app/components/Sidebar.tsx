@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
-import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon, LogOutIcon, Download, Plus } from 'lucide-react';
+import { ChevronRight, BookOpen, BarChart2, BookMarked, Film, Menu, X, Globe, LogInIcon, LogOutIcon, Download, Plus, User } from 'lucide-react';
 import { UserContext, AvailableLanguageOption } from '@/context/UserContext';
 import { supabase } from '@/lib/supabaseclient';
 
@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ documentName }) => {
   ];
 
   // Add login item only for non-logged in users
-  if (!user) {
+  if (!user || user.is_anonymous) {
     navItems.push({ href: '/login', name: 'Login', icon: LogInIcon });
   }
 

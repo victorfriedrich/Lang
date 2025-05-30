@@ -211,8 +211,8 @@ const YouTubeVideoGrid: React.FC = () => {
                     <div className="text-sm text-gray-500">words known</div>
                   </div>
                   <div className="text-right md:group-hover:opacity-0 ml-auto mr-8 md:mx-0 transition-opacity duration-200">
-                    <div className="text-md font-medium">({video.usefulWords}) {video.newWords}</div>
-                    <div className="text-sm text-gray-500">(prioritized) new words</div>
+                    <div className="text-md font-medium">{video.newWords}</div>
+                    <div className="text-sm text-gray-500">new words</div>
                   </div>
 
                   <button
