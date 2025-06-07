@@ -95,7 +95,7 @@ const WordCategories: React.FC<WordCategoriesProps> = ({
           <div
             key={cat.category}
             onClick={() => onSelectCategory(cat.category)}
-            className="cursor-pointer rounded-md bg-white hover:bg-gray-100 text-center py-6 text-gray-700"
+            className="cursor-pointer rounded-md bg-white hover:bg-gray-100 text-center py-6 text-gray-700 hover:shadow-md transform hover:-translate-y-1 transition-all duration-200"
           >
             {cat.category}
           </div>
