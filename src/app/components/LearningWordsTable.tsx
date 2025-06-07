@@ -77,7 +77,15 @@ const SourcesDropdown: React.FC<SourcesDropdownProps> = ({ sources, current, onC
 };
 
 /* main component */
-const LearningWordsTable: React.FC = () => {
+interface LearningWordsTableProps {
+  onMovedToKnown?: () => void;
+  onSourceChange?: (s: string) => void;
+}
+
+const LearningWordsTable: React.FC<LearningWordsTableProps> = ({
+  onMovedToKnown,
+  onSourceChange,
+}) => {
   /* source dropdown */
   const [sources, setSources] = useState<string[]>([]);
   const [sourceFilter, setSourceFilter] = useState<string>('all');
@@ -157,6 +165,7 @@ const LearningWordsTable: React.FC = () => {
       await updateUserwordsStatus(selectedWords, 'known');
       setWords((prev) => prev.filter((w) => !selectedWords.includes(w.word_id)));
       setSelectedWords([]);
+      onMovedToKnown?.();
     } catch (err) {
       console.error('Error updating userwords status:', err);
     }
@@ -183,7 +192,14 @@ const LearningWordsTable: React.FC = () => {
 
         {/* right‑aligned group */}
         <div className="flex items-center gap-4 ml-auto">
-          <SourcesDropdown sources={sources} current={sourceFilter} onChange={setSourceFilter} />
+          <SourcesDropdown
+            sources={sources}
+            current={sourceFilter}
+            onChange={(s) => {
+              setSourceFilter(s);
+              onSourceChange?.(s);
+            }}
+          />
           <input
             type="text"
             placeholder="Search…"
