@@ -1,183 +1,180 @@
+/* ------------------------------------------------------------------ *
+ *  src/components/LearningWordsTable.tsx                             *
+ * ------------------------------------------------------------------ *
+ *  • Source-filter dropdown & search **right‑aligned** (ml‑auto).    *
+ *  • Uses Filter icon; wider dropdown; no source column.             *
+ * ------------------------------------------------------------------ */
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowUp, ArrowDown } from 'lucide-react';
-import useLearningWords, { LearningWord } from '../hooks/useLearningWords';
+import { ArrowUp, ArrowDown, Check, ChevronDown, Filter } from 'lucide-react';
 
-/**
- * Helper to decide label/color for "days due" based on content.
- * - If it's "due today", label = "Due Today", red pill
- * - If it's numeric, color by range:
- *     1–3 => orange
- *     4–7 => yellow
- *     >7  => green
- *     <=0 => red (overdue)
- * - Otherwise, gray pill fallback
- */
-function getDuePill(dueStr: string) {
-  const lower = dueStr.toLowerCase();
+import { useGetSources } from '../hooks/useGetSources';
+import { useGetLearningWords, LearningWord } from '../hooks/useGetLearningWords';
 
-  // Special case: "due today"
-  if (lower === 'due today') {
-    return { label: 'Due Today', colorClass: 'bg-red-200' };
-  }
-
-  // Attempt to parse numeric days
-  const numericDue = parseInt(dueStr, 10);
-
-  // If it's not a valid number, fallback to gray
-  if (isNaN(numericDue)) {
-    return { label: dueStr, colorClass: 'bg-gray-200' };
-  }
-
-  // Numeric-based coloring
-  if (numericDue < 0) {
-    // Overdue
-    return { label: 'Overdue', colorClass: 'bg-red-200' };
-  } else if (numericDue === 0) {
-    // Due today
-    return { label: 'Due Today', colorClass: 'bg-red-200' };
-  } else if (numericDue <= 3) {
-    return { label: dueStr, colorClass: 'bg-orange-200' };
-  } else if (numericDue <= 7) {
-    return { label: dueStr, colorClass: 'bg-yellow-200' };
-  } else {
-    return { label: dueStr, colorClass: 'bg-green-200' };
-  }
+/* coloured “days‑due” pill */
+function getDuePill(due: string) {
+  const l = due.toLowerCase();
+  if (l === 'due today') return { label: 'Due Today', color: 'bg-red-200' };
+  const n = parseInt(due, 10);
+  if (isNaN(n)) return { label: due, color: 'bg-gray-200' };
+  if (n < 0) return { label: 'Overdue', color: 'bg-red-200' };
+  if (n === 0) return { label: 'Due Today', color: 'bg-red-200' };
+  if (n <= 3) return { label: due, color: 'bg-orange-200' };
+  if (n <= 7) return { label: due, color: 'bg-yellow-200' };
+  return { label: due, color: 'bg-green-200' };
 }
 
-const LearningWordsTable: React.FC = () => {
-  const [orderDirection, setOrderDirection] = useState<'ASC' | 'DESC'>('ASC');
-  const [displayWords, setDisplayWords] = useState<LearningWord[]>([]);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+/* dropdown */
+interface SourcesDropdownProps {
+  sources: string[];
+  current: string;
+  onChange: (s: string) => void;
+}
+const SourcesDropdown: React.FC<SourcesDropdownProps> = ({ sources, current, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const { words, fetchWords, loading, hasMore, error } = useLearningWords({
-    pageSize: 20,
-    orderDirection,
-    searchTerm: debouncedSearch,
-  });
+  const opts = [{ id: 'all', label: 'All Sources' }, ...sources.map((s) => ({ id: s, label: s }))];
 
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  /**
-   * Debounce search: wait 500ms after typing stops,
-   * then update `debouncedSearch`. If empty => '' (fetch all).
-   */
   useEffect(() => {
-    const handler = setTimeout(() => {
-      const trimmedSearch = search.trim();
-      console.log('Debounced search (after trim):', trimmedSearch);
-      setDebouncedSearch(search.trim() || '');
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [search]);
+    const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
 
-  /**
-   * Whenever debouncedSearch changes, trigger a fresh fetch.
-   * (Depending on your custom hook, you may or may not need this.)
-   */
-  // useEffect(() => {
-  //   fetchWords(); // Re-fetch from page 1 with new searchTerm
-  // }, [debouncedSearch, fetchWords]);
-
-  /**
-   * Update displayed words when new data arrives
-   */
-  useEffect(() => {
-    if (!loading) {
-      setDisplayWords(words);
-    }
-  }, [words, loading]);
-
-  /**
-   * Infinite scrolling using IntersectionObserver
-   */
-  const lastWordRef = useCallback(
-    (node: HTMLTableRowElement | null) => {
-      if (loading) return;
-      if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          fetchWords();
-        }
-      });
-
-      if (node) observer.current.observe(node);
-    },
-    [loading, hasMore, fetchWords]
-  );
-
-  /**
-   * Toggle ascending/descending order
-   */
-  const toggleOrderDirection = () => {
-    setOrderDirection((prev) => (prev === 'ASC' ? 'DESC' : 'ASC'));
-  };
+  const label = opts.find((o) => o.id === current)?.label ?? 'All Sources';
 
   return (
+    <div className="relative" ref={ref}>
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors text-md font-medium text-gray-700">
+        <Filter size={16} />
+        <span className="truncate max-w-40 lg:max-w-none">{label}</span>
+        <ChevronDown size={14} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-xl z-20 border border-gray-200 overflow-hidden">
+          <div className="flex flex-col divide-y divide-gray-100 max-h-64 overflow-y-auto">
+            {opts.map((o) => (
+              <button
+                key={o.id}
+                className={`flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${current === o.id ? 'bg-gray-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                onClick={() => {
+                  onChange(o.id);
+                  setOpen(false);
+                }}
+              >
+                <span className="truncate max-w-56">{o.label}</span>
+                {current === o.id && <Check size={16} className="text-blue-600" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* main component */
+const LearningWordsTable: React.FC = () => {
+  /* source dropdown */
+  const [sources, setSources] = useState<string[]>([]);
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const { getSources } = useGetSources();
+  useEffect(() => {
+    (async () => {
+      try { setSources(await getSources()); } catch {/* ignore */}
+    })();
+  }, [getSources]);
+
+  /* order */
+  const [direction, setDirection] = useState<'ASC' | 'DESC'>('ASC');
+  const toggleDirection = () => setDirection((p) => (p === 'ASC' ? 'DESC' : 'ASC'));
+
+  /* search debounce */
+  const [search, setSearch] = useState('');
+  const [debounced, setDebounced] = useState<string | null>(null);
+  useEffect(() => { const t = setTimeout(() => setDebounced(search.trim() || null), 500); return () => clearTimeout(t); }, [search]);
+
+  /* pagination */
+  const pageSize = 20;
+  const [cursor, setCursor] = useState<number>(0);
+  const [words, setWords] = useState<LearningWord[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => { setCursor(0); setWords([]); setHasMore(true); }, [debounced, sourceFilter, direction]);
+
+  const { learningWords: fetched, isLoading, error } = useGetLearningWords({
+    orderDirection: direction,
+    cursorWordId: cursor,
+    searchTerm: debounced,
+    pageSize,
+    sourceFilter: sourceFilter === 'all' ? null : sourceFilter,
+  });
+
+  useEffect(() => {
+    if (fetched.length === 0 && cursor !== 0) { setHasMore(false); return; }
+    setWords((prev) => (cursor === 0 ? fetched : [...prev, ...fetched]));
+  }, [fetched, cursor]);
+
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastRowRef = useCallback((node: HTMLTableRowElement | null) => {
+    if (isLoading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore && fetched.length === pageSize) {
+        const lastId = fetched[fetched.length - 1]?.word_id; if (lastId) setCursor(lastId);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoading, hasMore, fetched, pageSize]);
+
+  /* render */
+  return (
     <div className="bg-white mt-10 shadow-md rounded-lg">
-      {/* Header with Title and Search Bar */}
-      <div className="flex items-center justify-between bg-gray-100 px-4 py-3 rounded-t-lg">
+      {/* header */}
+      <div className="flex items-center bg-gray-100 px-4 py-3 rounded-t-lg gap-4">
         <h2 className="text-lg font-semibold text-gray-700">Your Learning Words</h2>
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-1/3 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-gray-400"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+
+        {/* right‑aligned group */}
+        <div className="flex items-center gap-4 ml-auto">
+          <SourcesDropdown sources={sources} current={sourceFilter} onChange={setSourceFilter} />
+          <input
+            type="text"
+            placeholder="Search…"
+            className="w-64 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-gray-400"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
-      {/* Table Container */}
+      {/* table */}
       <div className="overflow-auto pb-16">
         <table className="w-full min-w-max table-auto">
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th className="w-12 px-3 py-3 text-gray-500 uppercase text-xs font-medium">
-                <button
-                  onClick={toggleOrderDirection}
-                  className="text-gray-400 hover:text-black transition-colors duration-200"
-                  aria-label="Toggle Order"
-                >
-                  {orderDirection === 'ASC' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                <button onClick={toggleDirection} className="text-gray-400 hover:text-black transition-colors duration-200" aria-label="Toggle order">
+                  {direction === 'ASC' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
                 </button>
               </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Word
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Translation
-              </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                Days to practice
-              </th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Word</th>
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Translation</th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Days&nbsp;to&nbsp;practice</th>
             </tr>
           </thead>
-
           <tbody className="divide-y divide-gray-200 text-sm">
-            {displayWords.map((word: LearningWord, index: number) => {
-              const isLastWord = displayWords.length === index + 1;
-              const { label, colorClass } = getDuePill(word.review_due);
-
+            {words.map((w, i) => {
+              const last = i === words.length - 1;
+              const { label, color } = getDuePill(w.review_due);
               return (
-                <tr
-                  key={`${word.word_id}-${index}`}
-                  ref={isLastWord ? lastWordRef : null}
-                  className="hover:bg-gray-50"
-                >
-                  <td className="w-12 px-3 py-4"></td>
-                  <td className="px-3 py-4 whitespace-nowrap font-medium text-gray-700">
-                    {word.word}
-                  </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-gray-600">
-                    {word.translation ?? ''}
-                  </td>
+                <tr key={w.word_id} ref={last ? lastRowRef : null} className="hover:bg-gray-50">
+                  <td className="w-12 px-3 py-4" />
+                  <td className="px-3 py-4 whitespace-nowrap font-medium text-gray-700">{w.word}</td>
+                  <td className="px-3 py-4 whitespace-nowrap text-gray-600">{w.translation}</td>
                   <td className="px-3 py-4 whitespace-nowrap text-right w-24">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-black font-medium ${colorClass}`}
-                    >
-                      {label}
-                    </span>
+                    <span className={`inline-block px-3 py-1 rounded-full text-black font-medium ${color}`}>{label}</span>
                   </td>
                 </tr>
               );
@@ -185,28 +182,10 @@ const LearningWordsTable: React.FC = () => {
           </tbody>
         </table>
 
-        {loading && (
-          <div className="text-center py-4 text-gray-500">
-            Loading...
-          </div>
-        )}
-        {error && (
-          <div className="text-center py-4 text-red-500">
-            {error}
-          </div>
-        )}
-        {!hasMore && !loading && displayWords.length > 0 && (
-          <div className="text-center py-4 text-gray-500">
-            You have seen all words.
-          </div>
-        )}
-
-        {/* If there's absolutely no data to show */}
-        {!loading && displayWords.length === 0 && (
-          <div className="text-center py-4 text-gray-500">
-            No words found.
-          </div>
-        )}
+        {isLoading && <p className="text-center py-4 text-gray-500">Loading…</p>}
+        {error && <p className="text-center py-4 text-red-500">{error}</p>}
+        {!isLoading && words.length === 0 && <p className="text-center py-4 text-gray-500">No words found.</p>}
+        {!isLoading && !hasMore && words.length > 0 && <p className="text-center py-4 text-gray-500">You have seen all words.</p>}
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ const WordCategories: React.FC<WordCategoriesProps> = ({ language, selectedCateg
 
   const handleAddToUserwords = async () => {
     try {
-      await addWordsToUserwords(selectedWords);
+      await addWordsToUserwords(selectedWords, `Frequent Words: ${selectedCategory}`);
       // Remove added words from displayed words
       setDisplayedWordIds(prev => prev.filter(id => !selectedWords.includes(id)));
       setSelectedWords([]);

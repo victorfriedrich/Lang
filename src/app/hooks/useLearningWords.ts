@@ -1,118 +1,78 @@
-// useLearningWords.ts
-import { useState, useEffect, useCallback, useRef, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseclient';
-import { UserContext } from '@/context/UserContext';
 
 export interface LearningWord {
   word_id: number;
   word: string;
   translation: string;
   status: string;
-  review_due: string; // "due today", "no review date", or a numeric string representing days
+  review_due: string;
+  source: string;
 }
 
-interface UseLearningWordsOptions {
-  pageSize?: number;
+export interface UseGetLearningWordsParams {
   orderDirection?: 'ASC' | 'DESC';
-  searchTerm?: string;
+  cursorWordId?: number;
+  searchTerm?: string | null;
+  pageSize?: number;
+  languageFilter?: string | null;
+  sourceFilter?: string | null;
 }
 
-const useLearningWords = ({
-  pageSize = 20,
+export const useGetLearningWords = ({
   orderDirection = 'ASC',
-  searchTerm = '',
-}: UseLearningWordsOptions = {}) => {
-  const [words, setWords] = useState<LearningWord[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  cursorWordId = 0,
+  searchTerm = null,
+  pageSize = 20,
+  languageFilter = null,
+  sourceFilter = null,
+}: UseGetLearningWordsParams) => {
+  const [learningWords, setLearningWords] = useState<LearningWord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { language } = useContext(UserContext);
-
-  // Refs for pagination cursors (using review_due as the primary cursor)
-  const lastFetchedReviewDueRef = useRef<number | null>(null);
-  const lastFetchedWordIdRef = useRef<number | null>(null);
-
-  // Maintain refs for loading and hasMore to avoid stale closures
-  const hasMoreRef = useRef(hasMore);
-  const loadingRef = useRef(loading);
 
   useEffect(() => {
-    hasMoreRef.current = hasMore;
-  }, [hasMore]);
+    const fetchLearningWords = async () => {
+      setIsLoading(true);
+      setError(null);
 
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
+      try {
+        const { data, error: rpcError } = await supabase
+          .rpc('get_learning_words', {
+            order_direction: orderDirection,
+            cursor_word_id: cursorWordId,
+            search_term: searchTerm,
+            page_size: pageSize,
+            language_filter: languageFilter,
+            source_filter: sourceFilter,
+          });
 
-  // Helper to convert the returned review_due text into a numeric value for pagination.
-  const parseReviewDue = (reviewDue: string): number => {
-    if (reviewDue === 'due today') return 0;
-    if (reviewDue === 'no review date') return 10000;
-    const parsed = parseInt(reviewDue, 10);
-    return isNaN(parsed) ? 10000 : parsed;
-  };
+        if (rpcError) {
+          console.error('Supabase RPC error:', rpcError);
+          throw rpcError;
+        }
 
-  const fetchWords = useCallback(async () => {
-    if (loadingRef.current || !hasMoreRef.current) return;
+        if (!Array.isArray(data)) {
+          throw new Error('Unexpected response shape');
+        }
 
-    setLoading(true);
-    setError(null);
-
-    console.log("Search term " + searchTerm.trim())
-
-    try {
-      const { data, error: fetchError } = await supabase.rpc('get_learning_words', {
-        order_direction: orderDirection,
-        cursor_days_due: lastFetchedReviewDueRef.current, // may be null on first fetch
-        cursor_word_id: lastFetchedWordIdRef.current || 0, // tie-breaker, defaults to 0
-        search_term: searchTerm.trim(),
-        page_size: pageSize,
-        language_filter: language?.name.toLowerCase(),
-      });
-
-      if (fetchError) {
-        throw fetchError;
+        setLearningWords(data as LearningWord[]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      if (!data || data.length === 0) {
-        setHasMore(false);
-        return;
-      }
+    fetchLearningWords();
+  }, [
+    orderDirection,
+    cursorWordId,
+    searchTerm,
+    pageSize,
+    languageFilter,
+    sourceFilter,
+  ]);
 
-      // Update pagination cursors using the last word in the fetched data.
-      const lastWord = data[data.length - 1];
-      const parsedReviewDue = parseReviewDue(lastWord.review_due);
-      lastFetchedReviewDueRef.current = parsedReviewDue;
-      lastFetchedWordIdRef.current = lastWord.word_id;
-
-      setWords((prevWords) => {
-        const existingIds = new Set(prevWords.map((word) => word.word_id));
-        const newWords = data.filter((newWord: LearningWord) => !existingIds.has(newWord.word_id));
-        return [...prevWords, ...newWords];
-      });
-
-      if (data.length < pageSize) {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error('Error fetching learning words:', err);
-      setError('Failed to fetch learning words.');
-    } finally {
-      setLoading(false);
-    }
-  }, [pageSize, orderDirection, searchTerm, language]);
-
-  // When orderDirection or searchTerm change, reset the state and fetch the first page.
-  useEffect(() => {
-    setWords([]);
-    lastFetchedReviewDueRef.current = null;
-    lastFetchedWordIdRef.current = null;
-    setHasMore(true);
-    setError(null);
-    fetchWords();
-  }, [fetchWords, orderDirection, searchTerm]);
-
-  return { words, fetchWords, loading, hasMore, error };
+  return { learningWords, isLoading, error };
 };
-
-export default useLearningWords;

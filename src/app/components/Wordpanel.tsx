@@ -59,7 +59,7 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
 
   const addToLearningSet = useCallback(async () => {
     try {
-      await addWordsToUserwords(selectedWords);
+      await addWordsToUserwords(selectedWords, videoId);
       onClose(selectedWords.length);
     } catch (error) {
       // Error handling could be improved here, e.g., showing an error message to the user
