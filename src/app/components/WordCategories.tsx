@@ -7,9 +7,18 @@ import { Edit2 } from 'lucide-react';
 interface WordCategoriesProps {
   language: string;
   selectedCategory: string | null;
+  categories: { category: string; icon: string | null }[];
+  onSelectCategory: (category: string) => void;
+  categoriesLoading: boolean;
 }
 
-const WordCategories: React.FC<WordCategoriesProps> = ({ language, selectedCategory }) => {
+const WordCategories: React.FC<WordCategoriesProps> = ({
+  language,
+  selectedCategory,
+  categories,
+  onSelectCategory,
+  categoriesLoading,
+}) => {
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
@@ -72,9 +81,25 @@ const WordCategories: React.FC<WordCategoriesProps> = ({ language, selectedCateg
   };
 
   if (!selectedCategory) {
+    if (categoriesLoading) {
+      return (
+        <div className="flex items-center justify-center h-64 text-gray-500">
+          Loading categories...
+        </div>
+      );
+    }
+
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
-        Select a category above to see its most common words you haven't added yet.
+      <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {categories.map((cat) => (
+          <div
+            key={cat.category}
+            onClick={() => onSelectCategory(cat.category)}
+            className="cursor-pointer rounded-md bg-gray-100 hover:bg-gray-200 text-center py-6 text-gray-700"
+          >
+            {cat.category}
+          </div>
+        ))}
       </div>
     );
   }
