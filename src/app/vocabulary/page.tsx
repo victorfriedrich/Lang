@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { FlashcardSession } from '../session/FlashcardSession';
+import ContextReviewSession from './ContextReviewSession';
 import { useOverdueWords } from '../hooks/useOverdueWords';
 import { useTopWords } from '../hooks/useTopWords';
 import { useStreakData } from '../hooks/useStreakData';
@@ -18,6 +19,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 
 const VocabularyLearnerWithStreak = () => {
   const [showSession, setShowSession] = useState(false);
+  const [showContextReview, setShowContextReview] = useState(false);
   const [sessionMode, setSessionMode] = useState<'flashcard' | 'writing'>('flashcard');
   const [frontSide, setFrontSide] = useState<'spanish' | 'english'>('english');
   const [selectedWord, setSelectedWord] = useState<any | null>(null);
@@ -48,12 +50,21 @@ const VocabularyLearnerWithStreak = () => {
     setShowSession(true);
   };
 
+  const handleStartContextReview = () => {
+    setShowContextReview(true);
+  };
+
   const handleRefresh = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
   const handleExitSession = useCallback(() => {
     setShowSession(false);
+    handleRefresh();
+  }, [handleRefresh]);
+
+  const handleExitContextReview = useCallback(() => {
+    setShowContextReview(false);
     handleRefresh();
   }, [handleRefresh]);
 
@@ -92,6 +103,22 @@ const VocabularyLearnerWithStreak = () => {
     );
   }
 
+  if (showContextReview) {
+    const validWords = wordsDueToday.filter(word =>
+      word && word.word_id && (word.word_root || word.root)
+    ).map(word => ({
+      word: word.word_root || word.root,
+      translation: word.translation || 'No translation available',
+    }));
+
+    return (
+      <ContextReviewSession
+        learningSet={validWords}
+        onExit={handleExitContextReview}
+      />
+    );
+  }
+
   if (overdueError || topError) {
     return <ErrorState message={overdueError || topError} />;
   }
@@ -105,7 +132,11 @@ const VocabularyLearnerWithStreak = () => {
         <Header currentStreak={currentStreak} />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <ReviewSection wordsDueToday={wordsDueToday} onStartReview={handleStartReview} />
+          <ReviewSection
+            wordsDueToday={wordsDueToday}
+            onStartReview={handleStartReview}
+            onContextReview={handleStartContextReview}
+          />
 
           <StreakDetails
             streakData={streakData}
