@@ -2,23 +2,28 @@ import { useState, useEffect, useContext } from 'react';
 import { supabase } from '@/lib/supabaseclient';
 import { UserContext } from '@/context/UserContext';
 
-interface OverdueWord {
+interface WordRow {
   word_id: number;
   word_root: string;
   translation: string;
   next_review_due_at: string;
 }
 
-interface UseOverdueWordsOptions {
+interface UseWordsOptions {
   dueType?: 'today' | 'overdue' | 'both';
   pageSize?: number;
+  source?: string;                     // NEW – optional filter
 }
 
+/**
+ * Fetches words that are due/today/overdue for the current user.
+ * Automatically re-runs when `refreshTrigger` or any option changes.
+ */
 export const useOverdueWords = (
   refreshTrigger: number,
-  options: UseOverdueWordsOptions = {}
+  options: UseWordsOptions = {}
 ) => {
-  const [overdueWords, setOverdueWords] = useState<OverdueWord[]>([]);
+  const [words, setWords] = useState<WordRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { language } = useContext(UserContext);
@@ -26,17 +31,20 @@ export const useOverdueWords = (
   const {
     dueType = 'both',
     pageSize = 225,
+    source,                           // may be undefined/null
   } = options;
 
   useEffect(() => {
-    const fetchOverdueWords = async () => {
+    const fetchWords = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const { data, error } = await supabase.rpc('get_overdue_words', {
+        const { data, error } = await supabase.rpc('get_userwords_filtered', {
           language_filter: language?.name.toLowerCase(),
           due_type: dueType,
           page_size: pageSize,
+          // Only send p_source if the caller provided one.
+          ...(source !== undefined && { p_source: source })
         });
 
         if (error) {
@@ -44,17 +52,17 @@ export const useOverdueWords = (
           throw error;
         }
 
-        setOverdueWords(data);
+        setWords(data ?? []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchOverdueWords();
+    fetchWords();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshTrigger, language, dueType, pageSize]);
+  }, [refreshTrigger, language, dueType, pageSize, source]);
 
-  return { overdueWords, isLoading, error };
+  return { words, isLoading, error };
 };
