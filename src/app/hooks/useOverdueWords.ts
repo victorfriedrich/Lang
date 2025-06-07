@@ -26,7 +26,7 @@ export const useOverdueWords = (
   const [words, setWords] = useState<WordRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { language } = useContext(UserContext);
+  const { language, loading: isLoadingUser } = useContext(UserContext);
 
   const {
     dueType = 'both',
@@ -35,12 +35,25 @@ export const useOverdueWords = (
   } = options;
 
   useEffect(() => {
+    // Wait for user/language to finish loading
+    if (isLoadingUser) {
+      return;
+    }
+
+    // Stop if language isn't selected yet
+    if (!language?.name) {
+      setWords([]);
+      setIsLoading(false);
+      setError('No language selected');
+      return;
+    }
+
     const fetchWords = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const { data, error } = await supabase.rpc('get_userwords_filtered', {
-          language_filter: language?.name.toLowerCase(),
+          language_filter: language.name.toLowerCase(),
           due_type: dueType,
           page_size: pageSize,
           // Only send p_source if the caller provided one.
@@ -62,7 +75,7 @@ export const useOverdueWords = (
 
     fetchWords();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshTrigger, language, dueType, pageSize, source]);
+  }, [refreshTrigger, language, dueType, pageSize, source, isLoadingUser]);
 
   return { words, isLoading, error };
 };
