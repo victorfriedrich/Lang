@@ -25,13 +25,13 @@ const VocabularyLearnerWithStreak = () => {
   const [selectedWord, setSelectedWord] = useState<any | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [wordsDueToday, setWordsDueToday] = useState<any[]>([]);
-  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string | null>(null);
 
   const {
     words: overdueWords,
     error: overdueError,
   } = useOverdueWords(refreshTrigger, {
-    source: sourceFilter === 'all' ? undefined : sourceFilter,
+    source: sourceFilter ?? undefined,
   });
   const { topWords, error: topError } = useTopWords(refreshTrigger);
   const { streakData, currentStreak, highestStreak } = useStreakData(refreshTrigger);
@@ -149,6 +149,7 @@ const VocabularyLearnerWithStreak = () => {
           <LearningWordsTable
             onMovedToKnown={handleRefresh}
             onSourceChange={handleSourceChange}
+            source={sourceFilter}
           />
         </div>
 

@@ -28,14 +28,14 @@ function getDuePill(due: string) {
 /* dropdown */
 interface SourcesDropdownProps {
   sources: string[];
-  current: string;
-  onChange: (s: string) => void;
+  current: string | null;
+  onChange: (s: string | null) => void;
 }
 const SourcesDropdown: React.FC<SourcesDropdownProps> = ({ sources, current, onChange }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const opts = [{ id: 'all', label: 'All Sources' }, ...sources.map((s) => ({ id: s, label: s }))];
+  const opts = [{ value: null, label: 'All Sources' }, ...sources.map((s) => ({ value: s, label: s }))];
 
   useEffect(() => {
     const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
@@ -43,7 +43,7 @@ const SourcesDropdown: React.FC<SourcesDropdownProps> = ({ sources, current, onC
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  const label = opts.find((o) => o.id === current)?.label ?? 'All Sources';
+  const label = opts.find((o) => o.value === current)?.label ?? 'All Sources';
 
   return (
     <div className="relative" ref={ref}>
@@ -56,17 +56,17 @@ const SourcesDropdown: React.FC<SourcesDropdownProps> = ({ sources, current, onC
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-xl z-20 border border-gray-200 overflow-hidden">
           <div className="flex flex-col divide-y divide-gray-100 max-h-64 overflow-y-auto">
-            {opts.map((o) => (
+            {opts.map((o, idx) => (
               <button
-                key={o.id}
-                className={`flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${current === o.id ? 'bg-gray-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                key={idx}
+                className={`flex items-center justify-between w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${current === o.value ? 'bg-gray-50 text-blue-600 font-medium' : 'text-gray-700'}`}
                 onClick={() => {
-                  onChange(o.id);
+                  onChange(o.value);
                   setOpen(false);
                 }}
               >
                 <span className="truncate max-w-56">{o.label}</span>
-                {current === o.id && <Check size={16} className="text-blue-600" />}
+                {current === o.value && <Check size={16} className="text-blue-600" />}
               </button>
             ))}
           </div>
@@ -79,22 +79,27 @@ const SourcesDropdown: React.FC<SourcesDropdownProps> = ({ sources, current, onC
 /* main component */
 interface LearningWordsTableProps {
   onMovedToKnown?: () => void;
-  onSourceChange?: (s: string) => void;
+  onSourceChange?: (s: string | null) => void;
+  source?: string | null;
 }
 
 const LearningWordsTable: React.FC<LearningWordsTableProps> = ({
   onMovedToKnown,
   onSourceChange,
+  source = null,
 }) => {
   /* source dropdown */
   const [sources, setSources] = useState<string[]>([]);
-  const [sourceFilter, setSourceFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string | null>(source);
   const { getSources } = useGetSources();
   useEffect(() => {
     (async () => {
       try { setSources(await getSources()); } catch {/* ignore */}
     })();
   }, [getSources]);
+  useEffect(() => {
+    setSourceFilter(source);
+  }, [source]);
 
   /* order */
   const [direction, setDirection] = useState<'ASC' | 'DESC'>('ASC');
@@ -118,7 +123,7 @@ const LearningWordsTable: React.FC<LearningWordsTableProps> = ({
     cursorWordId: cursor,
     searchTerm: debounced,
     pageSize,
-    sourceFilter: sourceFilter === 'all' ? null : sourceFilter,
+    sourceFilter,
   });
 
   useEffect(() => {
