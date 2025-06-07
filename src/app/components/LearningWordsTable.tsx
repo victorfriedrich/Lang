@@ -10,6 +10,7 @@ import { ArrowUp, ArrowDown, Check, ChevronDown, Filter } from 'lucide-react';
 
 import { useGetSources } from '../hooks/useGetSources';
 import { useGetLearningWords, LearningWord } from '../hooks/useLearningWords';
+import { useSetUserwordsStatus } from '../hooks/useSetUserwordsStatus';
 
 /* coloured “days‑due” pill */
 function getDuePill(due: string) {
@@ -117,6 +118,44 @@ const LearningWordsTable: React.FC = () => {
     setWords((prev) => (cursor === 0 ? fetched : [...prev, ...fetched]));
   }, [fetched, cursor]);
 
+  /* selection */
+  const [selectedWords, setSelectedWords] = useState<number[]>([]);
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const { updateUserwordsStatus } = useSetUserwordsStatus();
+
+  const toggleWordSelection = (id: number) => {
+    setSelectedWords((prev) =>
+      prev.includes(id) ? prev.filter((wordId) => wordId !== id) : [...prev, id]
+    );
+  };
+
+  const handleRowClick = (
+    e: React.MouseEvent,
+    index: number,
+    wordId: number
+  ) => {
+    if (e.shiftKey && lastSelectedIndex !== null) {
+      e.preventDefault();
+      const rangeStart = Math.min(index, lastSelectedIndex);
+      const rangeEnd = Math.max(index, lastSelectedIndex);
+      const newSelected = words.slice(rangeStart, rangeEnd + 1).map((w) => w.word_id);
+      setSelectedWords((prev) => Array.from(new Set([...prev, ...newSelected])));
+    } else {
+      toggleWordSelection(wordId);
+      setLastSelectedIndex(index);
+    }
+  };
+
+  const handleMoveToKnown = async () => {
+    try {
+      await updateUserwordsStatus(selectedWords, 'known');
+      setWords((prev) => prev.filter((w) => !selectedWords.includes(w.word_id)));
+      setSelectedWords([]);
+    } catch (err) {
+      console.error('Error updating userwords status:', err);
+    }
+  };
+
   const observer = useRef<IntersectionObserver | null>(null);
   const lastRowRef = useCallback((node: HTMLTableRowElement | null) => {
     if (isLoading) return;
@@ -151,7 +190,10 @@ const LearningWordsTable: React.FC = () => {
 
       {/* table */}
       <div className="overflow-auto pb-16">
-        <table className="w-full min-w-max table-auto">
+        <table
+          className="w-full min-w-max table-auto"
+          onMouseDown={(e) => e.shiftKey && e.preventDefault()}
+        >
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th className="w-12 px-3 py-3 text-gray-500 uppercase text-xs font-medium">
@@ -169,8 +211,21 @@ const LearningWordsTable: React.FC = () => {
               const last = i === words.length - 1;
               const { label, color } = getDuePill(w.review_due);
               return (
-                <tr key={w.word_id} ref={last ? lastRowRef : null} className="hover:bg-gray-50">
-                  <td className="w-12 px-3 py-4" />
+                <tr
+                  key={w.word_id}
+                  ref={last ? lastRowRef : null}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={(e) => handleRowClick(e, i, w.word_id)}
+                >
+                  <td className="w-12 px-3 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedWords.includes(w.word_id)}
+                      onChange={(e) => handleRowClick(e as any, i, w.word_id)}
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
                   <td className="px-3 py-4 whitespace-nowrap font-medium text-gray-700">{w.word}</td>
                   <td className="px-3 py-4 whitespace-nowrap text-gray-600">{w.translation}</td>
                   <td className="px-3 py-4 whitespace-nowrap text-right w-24">
@@ -186,6 +241,19 @@ const LearningWordsTable: React.FC = () => {
         {error && <p className="text-center py-4 text-red-500">{error}</p>}
         {!isLoading && words.length === 0 && <p className="text-center py-4 text-gray-500">No words found.</p>}
         {!isLoading && !hasMore && words.length > 0 && <p className="text-center py-4 text-gray-500">You have seen all words.</p>}
+      </div>
+      <div className="bg-white bg-opacity-50 backdrop-blur-sm p-4 border-t sticky bottom-0 left-0 right-0">
+        <button
+          className={`w-full py-2 px-4 font-semibold rounded-md transition-colors duration-200 ${
+            selectedWords.length > 0
+              ? 'bg-blue-500 text-white hover:bg-blue-600'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+          disabled={selectedWords.length === 0}
+          onClick={handleMoveToKnown}
+        >
+          Move {selectedWords.length} {selectedWords.length === 1 ? 'Word' : 'Words'} to Known Words
+        </button>
       </div>
     </div>
   );
