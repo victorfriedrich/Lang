@@ -9,7 +9,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowUp, ArrowDown, Check, ChevronDown, Filter } from 'lucide-react';
 
 import { useGetSources } from '../hooks/useGetSources';
-import { useGetLearningWords, LearningWord } from '../hooks/useGetLearningWords';
+import { useGetLearningWords, LearningWord } from '../hooks/useLearningWords';
 
 /* coloured “days‑due” pill */
 function getDuePill(due: string) {
