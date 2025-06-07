@@ -25,7 +25,9 @@ export const useTopWords = (refreshTrigger: number) => {
     if (!language?.name) {
       setTopWords([]);
       setIsLoading(false);
-      setError('No language selected');
+      if (!isLoadingUser) {
+        setError('No language selected');
+      }
       return;
     }
 

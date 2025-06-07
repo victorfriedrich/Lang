@@ -119,8 +119,9 @@ const VocabularyLearnerWithStreak = () => {
     );
   }
 
-  if (overdueError || topError) {
-    return <ErrorState message={overdueError || topError} />;
+  const combinedError = overdueError || topError;
+  if (combinedError && combinedError !== 'No language selected') {
+    return <ErrorState message={combinedError} />;
   }
 
   return (

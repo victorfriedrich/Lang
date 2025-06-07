@@ -44,7 +44,10 @@ export const useOverdueWords = (
     if (!language?.name) {
       setWords([]);
       setIsLoading(false);
-      setError('No language selected');
+      // Avoid flashing an error while language is initializing
+      if (!isLoadingUser) {
+        setError('No language selected');
+      }
       return;
     }
 
