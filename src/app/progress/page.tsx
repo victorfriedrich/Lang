@@ -76,6 +76,13 @@ const ProgressPage = () => {
     error: wordsKnownError,
   } = useWordsKnownByDate();
   const { categories, isLoading: categoriesLoading } = useCategories("es");
+  const filteredCategories = useMemo(
+    () =>
+      categories.filter(
+        (c) => c.category !== "Unknown" && c.category !== "Failed"
+      ),
+    [categories]
+  );
 
   useLayoutEffect(() => {
     const updateUnderline = () => {
@@ -286,7 +293,7 @@ const ProgressPage = () => {
                   disabled={categoriesLoading}
                 >
                   <option value="">Select Category</option>
-                  {categories?.map((categoryObj) => (
+                  {filteredCategories.map((categoryObj) => (
                     <option key={categoryObj.category} value={categoryObj.category}>
                       {categoryObj.category}
                     </option>
@@ -306,7 +313,13 @@ const ProgressPage = () => {
             {selectedView === "editVocabulary" ? (
               <KnownWords searchTerm={debouncedSearchTerm} />
             ) : (
-              <WordCategories language="es" selectedCategory={selectedCategory} />
+              <WordCategories
+                language="es"
+                selectedCategory={selectedCategory}
+                categories={filteredCategories}
+                onSelectCategory={(c) => setSelectedCategory(c)}
+                categoriesLoading={categoriesLoading}
+              />
             )}
           </div>
         </div>
