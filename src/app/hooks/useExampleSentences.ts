@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useCallback } from 'react';
 import { UserContext } from '@/context/UserContext';
 
 export interface ExampleEntry {
@@ -12,7 +12,7 @@ export const useExampleSentences = () => {
   const { fetchWithAuth, language } = useContext(UserContext);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-  const fetchExamples = async (words: string[]) => {
+  const fetchExamples = useCallback(async (words: string[]) => {
     setLoading(true);
     setError(null);
     try {
@@ -34,7 +34,7 @@ export const useExampleSentences = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchWithAuth, language?.code]);
 
   return { fetchExamples, loading, error };
 };

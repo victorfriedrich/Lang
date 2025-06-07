@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import ExampleSentencesList from '../components/ExampleSentencesList';
 import MemoryMatchGame from '../components/MemoryMatchGame';
 import { useExampleSentences, ExampleEntry } from '../hooks/useExampleSentences';
@@ -22,15 +22,18 @@ const ContextReviewSession: React.FC<ContextReviewSessionProps> = ({ learningSet
   const [examples, setExamples] = useState<Record<string, ExampleEntry> | null>(null);
   const { fetchExamples } = useExampleSentences();
 
-  const currentWords = learningSet.slice(currentPage * wordsPerPage, (currentPage + 1) * wordsPerPage);
+  const currentWords = useMemo(
+    () => learningSet.slice(currentPage * wordsPerPage, (currentPage + 1) * wordsPerPage),
+    [currentPage, learningSet]
+  );
 
   useEffect(() => {
     setShowGame(false);
     (async () => {
-      const data = await fetchExamples(currentWords.map(w => w.word));
+      const data = await fetchExamples(currentWords.map((w) => w.word));
       setExamples(data);
     })();
-  }, [currentPage, fetchExamples, currentWords]);
+  }, [currentPage, fetchExamples, learningSet]);
 
   const handleContinue = () => setShowGame(true);
 
