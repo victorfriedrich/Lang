@@ -104,7 +104,13 @@ const KnownWords: React.FC<KnownWordsProps> = ({ searchTerm }) => {
       const newSelectedWords = displayWords
         .slice(rangeStart, rangeEnd + 1)
         .map(word => word.word_id);
-      setSelectedWords(prev => Array.from(new Set([...prev, ...newSelectedWords])));
+      setSelectedWords(prev => {
+        const isRemoving = prev.includes(wordId);
+        if (isRemoving) {
+          return prev.filter(id => !newSelectedWords.includes(id));
+        }
+        return Array.from(new Set([...prev, ...newSelectedWords]));
+      });
     } else {
       toggleWordSelection(wordId);
       setLastSelectedIndex(index);

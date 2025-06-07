@@ -139,7 +139,13 @@ const LearningWordsTable: React.FC = () => {
       const rangeStart = Math.min(index, lastSelectedIndex);
       const rangeEnd = Math.max(index, lastSelectedIndex);
       const newSelected = words.slice(rangeStart, rangeEnd + 1).map((w) => w.word_id);
-      setSelectedWords((prev) => Array.from(new Set([...prev, ...newSelected])));
+      setSelectedWords((prev) => {
+        const isRemoving = prev.includes(wordId);
+        if (isRemoving) {
+          return prev.filter((id) => !newSelected.includes(id));
+        }
+        return Array.from(new Set([...prev, ...newSelected]));
+      });
     } else {
       toggleWordSelection(wordId);
       setLastSelectedIndex(index);
@@ -170,7 +176,7 @@ const LearningWordsTable: React.FC = () => {
 
   /* render */
   return (
-    <div className="bg-white mt-10 shadow-md rounded-lg">
+    <div className="bg-white mt-10 shadow-md rounded-lg flex flex-col h-full">
       {/* header */}
       <div className="flex items-center bg-gray-100 px-4 py-3 rounded-t-lg gap-4">
         <h2 className="text-lg font-semibold text-gray-700">Your Learning Words</h2>
@@ -188,8 +194,18 @@ const LearningWordsTable: React.FC = () => {
         </div>
       </div>
 
+      <style jsx global>{`
+        .hide-scrollbar {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+
       {/* table */}
-      <div className="overflow-auto pb-16">
+      <div className="flex-grow overflow-auto pb-16 hide-scrollbar">
         <table
           className="w-full min-w-max table-auto"
           onMouseDown={(e) => e.shiftKey && e.preventDefault()}
