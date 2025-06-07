@@ -43,7 +43,7 @@ export const useArticleRecommendations = (selectedCategory: string) => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const categoryParam = selectedCategory === 'All Articles' ? '' : `&category=${selectedCategory}`;
+        const categoryParam = selectedCategory === 'All Articles' ? '' : `&category=${encodeURIComponent(selectedCategory)}`;
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
         const response = await fetchWithAuth(`${API_URL}/recommendations/articles/?language=${language?.code}${categoryParam}`);
         

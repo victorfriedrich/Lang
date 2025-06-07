@@ -19,7 +19,7 @@ export const useWordRecommendations = (category: string | null) => {
             if (!category) return;
 
             try {
-                const categoryParam = category ? `&category=${category}` : '';
+                const categoryParam = category ? `&category=${encodeURIComponent(category)}` : '';
                 const response = await fetchWithAuth(
                     `${API_URL}/recommendations/words/?language=${language?.code}${categoryParam}`
                 );
