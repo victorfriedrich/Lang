@@ -19,16 +19,17 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ wordsDueToday, onStartRev
         onClick={onStartReview}
         disabled={wordsDueToday.length === 0}
       >
-        Start Review
+        Flashcards
         <Play className="ml-2 h-4 w-4" />
       </button>
       {onContextReview && (
         <button
-          className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+          className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded flex items-center"
           onClick={onContextReview}
           disabled={wordsDueToday.length === 0}
         >
-          Context
+          Words in Context
+          <Play className="ml-2 h-4 w-4" />
         </button>
       )}
     </div>
