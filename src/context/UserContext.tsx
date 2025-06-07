@@ -60,7 +60,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguageState] = useState<LanguageOption | null>(null);
+  const [language, setLanguageState] = useState<LanguageOption | null>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('selected-language');
+      if (stored && SUPPORTED_LANGUAGES[stored]) {
+        return { ...SUPPORTED_LANGUAGES[stored] };
+      }
+    }
+    return null;
+  });
   const { userLanguages, defaultLanguage, isLoading: languagesLoading, fetchUserLanguages, setUserDefaultLanguage } = useUserLanguages();
   const { initializeUserAccount } = useInitializeAccount();
   const [availableLanguages, setAvailableLanguages] = useState<AvailableLanguageOption[]>([]);
@@ -104,24 +112,38 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         ...lang,
         initialized: userLanguages.includes(lang.code)
       }));
-      
+
       setAvailableLanguages(availableLangs);
-      
-      // If we have a default language set in the database, use it
+
+      const storedCode = typeof window !== 'undefined' ? localStorage.getItem('selected-language') : null;
+
+      // If we have a default language set in the database, prefer it
       if (defaultLanguage && SUPPORTED_LANGUAGES[defaultLanguage]) {
         setLanguageState({
           ...SUPPORTED_LANGUAGES[defaultLanguage]
         });
-      } else if (availableLangs.some(l => l.initialized)) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('selected-language', defaultLanguage);
+        }
+      } else if (!language && storedCode && SUPPORTED_LANGUAGES[storedCode]) {
+        // Fallback to language stored locally if context not yet set
+        setLanguageState({ ...SUPPORTED_LANGUAGES[storedCode] });
+      } else if (!language && availableLangs.some(l => l.initialized)) {
         // If user has any initialized language, set the first one
         const firstInitialized = availableLangs.find(l => l.initialized);
         if (firstInitialized) {
           setLanguageState(firstInitialized);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('selected-language', firstInitialized.code);
+          }
         }
-      } else {
+      } else if (!language) {
         // Default to first supported language if nothing is found
         const defaultLang = Object.values(SUPPORTED_LANGUAGES)[0];
         setLanguageState(defaultLang);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('selected-language', defaultLang.code);
+        }
       }
     }
   }, [userLanguages, defaultLanguage, languagesLoading]);
@@ -156,7 +178,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   
   const handleSetLanguage = async (newLanguage: LanguageOption) => {
     setLanguageState(newLanguage);
-    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selected-language', newLanguage.code);
+    }
+
     // Update default language in database if user is logged in and language is initialized
     if (user && !user.is_anonymous && userLanguages.includes(newLanguage.code)) {
       await setUserDefaultLanguage(newLanguage.code);
