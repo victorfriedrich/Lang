@@ -24,9 +24,11 @@ const WordCategories: React.FC<WordCategoriesProps> = ({
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [displayedWordIds, setDisplayedWordIds] = useState<number[]>([]);
 
-  const { recommendations, loading: recommendationsLoading } = useWordRecommendations(
-    selectedCategory
-  );
+  const {
+    recommendations,
+    loading: recommendationsLoading,
+    refreshRecommendations,
+  } = useWordRecommendations(selectedCategory);
   const { words: wordDetails } = useWordDetails(recommendations?.word_ids || []);
   const { addWordsToUserwords } = useUpdateUserwords();
 
@@ -70,6 +72,7 @@ const WordCategories: React.FC<WordCategoriesProps> = ({
       // Remove added words from displayed words
       setDisplayedWordIds(prev => prev.filter(id => !selectedWords.includes(id)));
       setSelectedWords([]);
+      refreshRecommendations();
     } catch (err) {
       console.error('Error adding words:', err);
     }
