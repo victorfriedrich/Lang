@@ -25,7 +25,10 @@ const VocabularyLearnerWithStreak = () => {
   const [wordsDueToday, setWordsDueToday] = useState<any[]>([]);
   const [sourceFilter, setSourceFilter] = useState<string>('all');
 
-  const { overdueWords, error: overdueError } = useOverdueWords(refreshTrigger, {
+  const {
+    words: overdueWords,
+    error: overdueError,
+  } = useOverdueWords(refreshTrigger, {
     source: sourceFilter === 'all' ? undefined : sourceFilter,
   });
   const { topWords, error: topError } = useTopWords(refreshTrigger);
