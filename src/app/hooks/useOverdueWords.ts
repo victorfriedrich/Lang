@@ -30,7 +30,7 @@ export const useOverdueWords = (
 
   const {
     dueType = 'both',
-    pageSize = 225,
+    pageSize = 500,
     source,                           // may be undefined/null
   } = options;
 
