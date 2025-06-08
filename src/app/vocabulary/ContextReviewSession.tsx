@@ -28,12 +28,19 @@ const ContextReviewSession: React.FC<ContextReviewSessionProps> = ({ learningSet
   );
 
   useEffect(() => {
+    let isMounted = true;
     setShowGame(false);
+    setExamples(null);
     (async () => {
       const data = await fetchExamples(currentWords.map((w) => w.word));
-      setExamples(data);
+      if (isMounted) {
+        setExamples(data);
+      }
     })();
-  }, [currentPage, fetchExamples, learningSet]);
+    return () => {
+      isMounted = false;
+    };
+  }, [currentPage, fetchExamples, learningSet, currentWords]);
 
   const handleContinue = () => setShowGame(true);
 
