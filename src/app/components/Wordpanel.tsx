@@ -170,8 +170,15 @@ const WordList: React.FC<{
   handleWordClick: (e: React.MouseEvent, word: MissingWord, index: number) => void;
   toggleWordSelection: (wordId: number) => void;
   toggleFlaggedWords: () => void;
-}> = ({ recommendedWords, flaggedWords, selectedWords, handleWordClick, toggleWordSelection, toggleFlaggedWords }) => (
-  <div className="flex-1 overflow-y-auto p-4">
+}> = ({
+  recommendedWords,
+  flaggedWords,
+  selectedWords,
+  handleWordClick,
+  toggleWordSelection,
+  toggleFlaggedWords,
+}) => (
+  <div className="flex-1 overflow-y-auto p-4 space-y-4">
     <ul className="space-y-2">
       {recommendedWords.map((word, index) => (
         <WordItem
@@ -183,16 +190,16 @@ const WordList: React.FC<{
           toggleWordSelection={toggleWordSelection}
         />
       ))}
-      {flaggedWords.length > 0 && (
-        <li className="mt-4">
-          <SelectGroupRow
-            label="Select Flagged"
-            toggleGroup={toggleFlaggedWords}
-            allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
-            count={flaggedWords.length}
-          />
-        </li>
-      )}
+    </ul>
+    {flaggedWords.length > 0 && (
+      <SelectGroupRow
+        label="Select Flagged"
+        toggleGroup={toggleFlaggedWords}
+        allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
+        count={flaggedWords.length}
+      />
+    )}
+    <ul className="space-y-2">
       {flaggedWords.map((word, index) => (
         <WordItem
           key={word.id}
