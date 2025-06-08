@@ -52,6 +52,10 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
 
   // Handler to restart session
   const handleRestart = useCallback(() => {
+    const incorrectCards = initialLearningSet.filter(card =>
+      incorrectCardIds.has(card.id)
+    );
+    setLearningSet(incorrectCards);
     setShowSummary(false);
     setCurrentCardIndex(0);
     setCorrectCardIds(new Set());
@@ -62,7 +66,7 @@ export const FlashcardSession: React.FC<FlashcardSessionProps> = ({ mode, frontS
     setFeedback(null);
     setShowCorrectAnimation(false);
     setWaitForNextButton(false);
-  }, []);
+  }, [incorrectCardIds, initialLearningSet]);
 
   const handleFinishSession = useCallback(() => {
     onExit();
