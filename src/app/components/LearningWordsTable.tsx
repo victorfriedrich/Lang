@@ -5,12 +5,16 @@
  *  • Uses Filter icon; wider dropdown; no source column.             *
  * ------------------------------------------------------------------ */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowUp, ArrowDown, Check, ChevronDown, Filter } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
+import { ArrowUp, ArrowDown, Check, ChevronDown, Filter, Download } from 'lucide-react';
+import { supabase } from '@/lib/supabaseclient';
+import { UserContext } from '@/context/UserContext';
 
 import { useGetSources } from '../hooks/useGetSources';
 import { useGetLearningWords, LearningWord } from '../hooks/useLearningWords';
 import { useSetUserwordsStatus } from '../hooks/useSetUserwordsStatus';
+import { useOverdueWords } from '../hooks/useOverdueWords';
+import { getDaysUntilReview } from '../utils/dateUtils';
 
 /* coloured “days‑due” pill */
 function getDuePill(due: string) {
@@ -76,6 +80,57 @@ const SourcesDropdown: React.FC<SourcesDropdownProps> = ({ sources, current, onC
   );
 };
 
+interface ExportDropdownProps {
+  onSelect: (t: 'anki' | 'csv') => void;
+}
+
+const ExportDropdown: React.FC<ExportDropdownProps> = ({ onSelect }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
+        aria-label="Export"
+      >
+        <Download size={16} />
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-xl z-20 border border-gray-200 overflow-hidden">
+          <div className="flex flex-col divide-y divide-gray-100">
+            <button
+              className="px-4 py-2 text-left hover:bg-gray-50"
+              onClick={() => {
+                onSelect('anki');
+                setOpen(false);
+              }}
+            >
+              Anki
+            </button>
+            <button
+              className="px-4 py-2 text-left hover:bg-gray-50"
+              onClick={() => {
+                onSelect('csv');
+                setOpen(false);
+              }}
+            >
+              CSV
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /* main component */
 interface LearningWordsTableProps {
   onMovedToKnown?: () => void;
@@ -92,6 +147,7 @@ const LearningWordsTable: React.FC<LearningWordsTableProps> = ({
   const [sources, setSources] = useState<string[]>([]);
   const [sourceFilter, setSourceFilter] = useState<string | null>(source);
   const { getSources } = useGetSources();
+  const { language } = useContext(UserContext);
   useEffect(() => {
     (async () => {
       try { setSources(await getSources()); } catch {/* ignore */}
@@ -135,6 +191,57 @@ const LearningWordsTable: React.FC<LearningWordsTableProps> = ({
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const { updateUserwordsStatus } = useSetUserwordsStatus();
+
+  const fetchAllLearningWords = async () => {
+    if (!language?.name) return [] as LearningWord[];
+    const { data, error } = await supabase.rpc('get_learning_words', {
+      order_direction: direction,
+      cursor_word_id: 0,
+      search_term: debounced,
+      page_size: 10000,
+      language_filter: language.name.toLowerCase(),
+      source_filter: sourceFilter,
+    });
+    if (error) {
+      console.error('Export fetch error:', error);
+      return [] as LearningWord[];
+    }
+    return (data as LearningWord[]) ?? [];
+  };
+
+  const { words: overdueWords } = useOverdueWords(0, {
+    dueType: 'both',
+    pageSize: 10000,
+    source: sourceFilter ?? undefined,
+  });
+
+  const triggerDownload = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async (type: 'anki' | 'csv') => {
+    if (type === 'csv') {
+      const all = await fetchAllLearningWords();
+      const lines = all.map((w) => `${w.word}\t${w.translation}`).join('\n');
+      triggerDownload('words.csv', lines);
+    } else {
+      const lines = overdueWords
+        .map((w: any) => {
+          const days = getDaysUntilReview(w.next_review_due_at);
+          return `${w.word_root}\t${w.translation}\t${days}`;
+        })
+        .join('\n');
+      triggerDownload('anki.tsv', lines);
+    }
+  };
 
   const toggleWordSelection = (id: number) => {
     setSelectedWords((prev) =>
@@ -197,6 +304,7 @@ const LearningWordsTable: React.FC<LearningWordsTableProps> = ({
 
         {/* right‑aligned group */}
         <div className="flex items-center gap-4 ml-auto">
+          <ExportDropdown onSelect={handleExport} />
           <SourcesDropdown
             sources={sources}
             current={sourceFilter}
