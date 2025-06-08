@@ -142,7 +142,7 @@ const VocabularyLearnerWithStreak = () => {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </Head>
-      <div className="w-full bg-white">
+      <div className="w-full bg-white min-h-screen">
         <Header currentStreak={currentStreak} />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
