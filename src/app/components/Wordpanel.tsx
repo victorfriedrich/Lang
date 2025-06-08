@@ -134,20 +134,13 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
         }
         count={recommendedWords.length}
       />
-      {flaggedWords.length > 0 && (
-        <SelectGroupRow
-          label="Select Flagged"
-          toggleGroup={toggleFlaggedWords}
-          allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
-          count={flaggedWords.length}
-        />
-      )}
       <WordList
         recommendedWords={recommendedWords}
         flaggedWords={flaggedWords}
         selectedWords={selectedWords}
         handleWordClick={handleWordClick}
         toggleWordSelection={toggleWordSelection}
+        toggleFlaggedWords={toggleFlaggedWords}
       />
       <ToggleSeenButton 
         isVideoSeen={isVideoSeen}
@@ -176,7 +169,8 @@ const WordList: React.FC<{
   selectedWords: number[];
   handleWordClick: (e: React.MouseEvent, word: MissingWord, index: number) => void;
   toggleWordSelection: (wordId: number) => void;
-}> = ({ recommendedWords, flaggedWords, selectedWords, handleWordClick, toggleWordSelection }) => (
+  toggleFlaggedWords: () => void;
+}> = ({ recommendedWords, flaggedWords, selectedWords, handleWordClick, toggleWordSelection, toggleFlaggedWords }) => (
   <div className="flex-1 overflow-y-auto p-4">
     <ul className="space-y-2">
       {recommendedWords.map((word, index) => (
@@ -190,7 +184,14 @@ const WordList: React.FC<{
         />
       ))}
       {flaggedWords.length > 0 && (
-        <li className="text-sm font-semibold mt-4">Flagged</li>
+        <li className="mt-4">
+          <SelectGroupRow
+            label="Select Flagged"
+            toggleGroup={toggleFlaggedWords}
+            allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
+            count={flaggedWords.length}
+          />
+        </li>
       )}
       {flaggedWords.map((word, index) => (
         <WordItem
