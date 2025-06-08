@@ -178,39 +178,45 @@ const WordList: React.FC<{
   toggleWordSelection,
   toggleFlaggedWords,
 }) => (
-  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-    <ul className="space-y-2">
-      {recommendedWords.map((word, index) => (
-        <WordItem
-          key={word.id}
-          word={word}
-          index={index}
-          isSelected={selectedWords.includes(word.id)}
-          handleWordClick={handleWordClick}
-          toggleWordSelection={toggleWordSelection}
-        />
-      ))}
-    </ul>
+  <div className="flex-1 overflow-y-auto space-y-4">
+    <div className="p-4">
+      <ul className="space-y-2">
+        {recommendedWords.map((word, index) => (
+          <WordItem
+            key={word.id}
+            word={word}
+            index={index}
+            isSelected={selectedWords.includes(word.id)}
+            handleWordClick={handleWordClick}
+            toggleWordSelection={toggleWordSelection}
+          />
+        ))}
+      </ul>
+    </div>
     {flaggedWords.length > 0 && (
-      <SelectGroupRow
-        label="Select Flagged"
-        toggleGroup={toggleFlaggedWords}
-        allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
-        count={flaggedWords.length}
-      />
-    )}
-    <ul className="space-y-2">
-      {flaggedWords.map((word, index) => (
-        <WordItem
-          key={word.id}
-          word={word}
-          index={recommendedWords.length + index}
-          isSelected={selectedWords.includes(word.id)}
-          handleWordClick={handleWordClick}
-          toggleWordSelection={toggleWordSelection}
+      <>
+        <SelectGroupRow
+          label="Select Flagged"
+          toggleGroup={toggleFlaggedWords}
+          allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
+          count={flaggedWords.length}
         />
-      ))}
-    </ul>
+        <div className="p-4">
+          <ul className="space-y-2">
+            {flaggedWords.map((word, index) => (
+              <WordItem
+                key={word.id}
+                word={word}
+                index={recommendedWords.length + index}
+                isSelected={selectedWords.includes(word.id)}
+                handleWordClick={handleWordClick}
+                toggleWordSelection={toggleWordSelection}
+              />
+            ))}
+          </ul>
+        </div>
+      </>
+    )}
   </div>
 );
 
