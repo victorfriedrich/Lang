@@ -12,12 +12,28 @@ const highlightWord = (sentence: string, highlight: string) => {
 };
 
 const ExampleSentencesList: React.FC<ExampleSentencesListProps> = ({ examples, onContinue }) => {
-  if (!examples) return null;
+  if (!examples) {
+    return (
+      <div className="max-w-4xl p-4 bg-white animate-pulse">
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="mb-4">
+              <div className="h-6 w-32 bg-gray-200 rounded mb-2" />
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded" />
+                <div className="h-4 bg-gray-200 rounded w-5/6" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white">
-      <div className="space-y-6">
+    <div className="max-w-4xl p-4 bg-white">
+      <div className="space-y-4">
         {Object.entries(examples).map(([word, data]) => (
-          <div key={word} className="mb-6">
+          <div key={word} className="mb-4">
             <h2 className="text-xl font-bold text-black mb-3">{word}</h2>
             <div className="space-y-2">
               {data.sentences.map((sentence, idx) => (
@@ -33,7 +49,7 @@ const ExampleSentencesList: React.FC<ExampleSentencesListProps> = ({ examples, o
           </div>
         ))}
       </div>
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end mt-6">
         <button
           onClick={onContinue}
           className="px-6 py-3 rounded-lg font-semibold bg-black text-white hover:bg-gray-800 transition-colors"

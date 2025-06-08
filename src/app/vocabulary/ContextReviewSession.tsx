@@ -54,10 +54,18 @@ const ContextReviewSession: React.FC<ContextReviewSessionProps> = ({ learningSet
   };
 
   if (showGame) {
-    return <MemoryMatchGame pairs={currentWords} onComplete={handleGameComplete} />;
+    return (
+      <div className="w-full bg-white min-h-screen">
+        <MemoryMatchGame pairs={currentWords} onComplete={handleGameComplete} />
+      </div>
+    );
   }
 
-  return <ExampleSentencesList examples={examples} onContinue={handleContinue} />;
+  return (
+    <div className="w-full bg-white min-h-screen">
+      <ExampleSentencesList examples={examples} onContinue={handleContinue} />
+    </div>
+  );
 };
 
 export default ContextReviewSession;
