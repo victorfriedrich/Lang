@@ -7,8 +7,12 @@ interface ExampleSentencesListProps {
 }
 
 const highlightWord = (sentence: string, highlight: string) => {
-  const regex = new RegExp(`\\b${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-  return sentence.replace(regex, match => `<span style="background-color: rgba(255, 165, 0, 0.3);">${match}</span>`);
+  const escaped = highlight.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+  const regex = new RegExp(`(?<=^|[^\\p{L}])(${escaped})(?=[^\\p{L}]|$)`, 'giu');
+  return sentence.replace(
+    regex,
+    (_match, word) => `<span style="background-color: rgba(255, 165, 0, 0.3);">${word}</span>`
+  );
 };
 
 const ExampleSentencesList: React.FC<ExampleSentencesListProps> = ({ examples, onContinue }) => {

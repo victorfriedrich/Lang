@@ -31,8 +31,11 @@ const ContextReviewSession: React.FC<ContextReviewSessionProps> = ({ learningSet
     let isMounted = true;
     setShowGame(false);
     setExamples(null);
+    const words = learningSet
+      .slice(currentPage * wordsPerPage, (currentPage + 1) * wordsPerPage)
+      .map((w) => w.word);
     (async () => {
-      const data = await fetchExamples(currentWords.map((w) => w.word));
+      const data = await fetchExamples(words);
       if (isMounted) {
         setExamples(data);
       }
@@ -40,7 +43,7 @@ const ContextReviewSession: React.FC<ContextReviewSessionProps> = ({ learningSet
     return () => {
       isMounted = false;
     };
-  }, [currentPage, fetchExamples, learningSet, currentWords]);
+  }, [currentPage, fetchExamples, learningSet]);
 
   const handleContinue = () => setShowGame(true);
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface Pair {
   word: string;
@@ -22,6 +22,7 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({ pairs, onComplete }) 
   const [matchedPairs, setMatchedPairs] = useState<Set<number>>(new Set());
   const [gameCards, setGameCards] = useState<Card[]>([]);
   const [cardStates, setCardStates] = useState<Record<string, 'correct' | 'incorrect' | undefined>>({});
+  const completedRef = useRef(false);
 
   useEffect(() => {
     const spanishCards = pairs.map((p, idx) => ({ id: `s-${idx}`, text: p.word, type: 'spanish' as const, matchId: idx }));
@@ -69,7 +70,8 @@ const MemoryMatchGame: React.FC<MemoryMatchGameProps> = ({ pairs, onComplete }) 
   };
 
   useEffect(() => {
-    if (matchedPairs.size === pairs.length && pairs.length > 0) {
+    if (!completedRef.current && matchedPairs.size === pairs.length && pairs.length > 0) {
+      completedRef.current = true;
       onComplete();
     }
   }, [matchedPairs, pairs.length, onComplete]);
