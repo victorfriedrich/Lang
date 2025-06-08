@@ -80,40 +80,53 @@ const VocabularyLearnerWithStreak = () => {
     setSelectedWord(null);
   };
 
+  const validWords = useMemo(
+    () =>
+      wordsDueToday
+        .filter(
+          (word) => word && word.word_id && (word.word_root || word.root)
+        )
+        .map((word) => ({
+          ...word,
+          translation: word.translation || 'No translation available',
+        })),
+    [wordsDueToday]
+  );
+
+  const flashcardLearningSet = useMemo(
+    () =>
+      validWords.map((word) => ({
+        id: word.word_id,
+        word: word.word_root || word.root,
+        translation: word.translation,
+      })),
+    [validWords]
+  );
+
+  const contextLearningSet = useMemo(
+    () =>
+      validWords.map((word) => ({
+        word: word.word_root || word.root,
+        translation: word.translation,
+      })),
+    [validWords]
+  );
+
   if (showSession) {
-    // Include all due words, and set translation to a fallback if missing
-    const validWords = wordsDueToday.filter(word => 
-      word && word.word_id && (word.word_root || word.root)
-    ).map(word => ({
-      ...word,
-      translation: word.translation || 'No translation available',
-    }));
-    
     return (
       <FlashcardSession
         mode={sessionMode}
         frontSide={frontSide}
         onExit={handleExitSession}
-        learningSet={validWords.map((word) => ({
-          id: word.word_id,
-          word: word.word_root || word.root,
-          translation: word.translation,
-        }))}
+        learningSet={flashcardLearningSet}
       />
     );
   }
 
   if (showContextReview) {
-    const validWords = wordsDueToday.filter(word =>
-      word && word.word_id && (word.word_root || word.root)
-    ).map(word => ({
-      word: word.word_root || word.root,
-      translation: word.translation || 'No translation available',
-    }));
-
     return (
       <ContextReviewSession
-        learningSet={validWords}
+        learningSet={contextLearningSet}
         onExit={handleExitContextReview}
       />
     );
