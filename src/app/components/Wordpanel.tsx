@@ -125,24 +125,42 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
       onClick={(e) => e.stopPropagation()}
     >
       <Header videoTitle={videoTitle} onClose={onClose} />
-      <SelectGroupRow
-        label="Select Recommended"
-        toggleGroup={toggleRecommendedWords}
-        allSelected={
-          recommendedWords.length > 0 &&
-          recommendedWords.every(w => selectedWords.includes(w.id))
-        }
-        count={recommendedWords.length}
-      />
-      <WordList
-        recommendedWords={recommendedWords}
-        flaggedWords={flaggedWords}
-        selectedWords={selectedWords}
-        handleWordClick={handleWordClick}
-        toggleWordSelection={toggleWordSelection}
-        toggleFlaggedWords={toggleFlaggedWords}
-      />
-      <ToggleSeenButton 
+      <div className="flex-1 overflow-y-auto space-y-4">
+        <SelectGroupRow
+          label="Select Recommended"
+          toggleGroup={toggleRecommendedWords}
+          allSelected={
+            recommendedWords.length > 0 &&
+            recommendedWords.every(w => selectedWords.includes(w.id))
+          }
+          count={recommendedWords.length}
+        />
+        <WordList
+          words={recommendedWords}
+          selectedWords={selectedWords}
+          handleWordClick={handleWordClick}
+          toggleWordSelection={toggleWordSelection}
+          startIndex={0}
+        />
+        {flaggedWords.length > 0 && (
+          <>
+            <SelectGroupRow
+              label="Select Flagged"
+              toggleGroup={toggleFlaggedWords}
+              allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
+              count={flaggedWords.length}
+            />
+            <WordList
+              words={flaggedWords}
+              selectedWords={selectedWords}
+              handleWordClick={handleWordClick}
+              toggleWordSelection={toggleWordSelection}
+              startIndex={recommendedWords.length}
+            />
+          </>
+        )}
+      </div>
+      <ToggleSeenButton
         isVideoSeen={isVideoSeen}
         toggleVideoSeen={toggleVideoSeen}
         selectedWordsCount={selectedWords.length}
@@ -164,59 +182,25 @@ const Header: React.FC<{ videoTitle: string; onClose: (addedWordsCount: number) 
 );
 
 const WordList: React.FC<{
-  recommendedWords: MissingWord[];
-  flaggedWords: MissingWord[];
+  words: MissingWord[];
   selectedWords: number[];
   handleWordClick: (e: React.MouseEvent, word: MissingWord, index: number) => void;
   toggleWordSelection: (wordId: number) => void;
-  toggleFlaggedWords: () => void;
-}> = ({
-  recommendedWords,
-  flaggedWords,
-  selectedWords,
-  handleWordClick,
-  toggleWordSelection,
-  toggleFlaggedWords,
-}) => (
-  <div className="flex-1 overflow-y-auto space-y-4">
-    <div className="p-4">
-      <ul className="space-y-2">
-        {recommendedWords.map((word, index) => (
-          <WordItem
-            key={word.id}
-            word={word}
-            index={index}
-            isSelected={selectedWords.includes(word.id)}
-            handleWordClick={handleWordClick}
-            toggleWordSelection={toggleWordSelection}
-          />
-        ))}
-      </ul>
-    </div>
-    {flaggedWords.length > 0 && (
-      <>
-        <SelectGroupRow
-          label="Select Flagged"
-          toggleGroup={toggleFlaggedWords}
-          allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
-          count={flaggedWords.length}
+  startIndex: number;
+}> = ({ words, selectedWords, handleWordClick, toggleWordSelection, startIndex }) => (
+  <div className="p-4">
+    <ul className="space-y-2">
+      {words.map((word, index) => (
+        <WordItem
+          key={word.id}
+          word={word}
+          index={startIndex + index}
+          isSelected={selectedWords.includes(word.id)}
+          handleWordClick={handleWordClick}
+          toggleWordSelection={toggleWordSelection}
         />
-        <div className="p-4">
-          <ul className="space-y-2">
-            {flaggedWords.map((word, index) => (
-              <WordItem
-                key={word.id}
-                word={word}
-                index={recommendedWords.length + index}
-                isSelected={selectedWords.includes(word.id)}
-                handleWordClick={handleWordClick}
-                toggleWordSelection={toggleWordSelection}
-              />
-            ))}
-          </ul>
-        </div>
-      </>
-    )}
+      ))}
+    </ul>
   </div>
 );
 
