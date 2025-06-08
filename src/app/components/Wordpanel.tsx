@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useMissingWords } from '../hooks/useMissingWords';
-import { Loader2, X, Eye, EyeOff } from 'lucide-react';
+import { Loader2, X, Eye } from 'lucide-react';
 import { useUpdateUserwords } from '../hooks/useUpdateUserwords';
 import { useSeenVideos } from '../hooks/useSeenVideos';
 
@@ -19,7 +19,8 @@ interface MissingWord {
 const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) => {
   const [selectedWords, setSelectedWords] = useState<number[]>([]);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
-  const { missingWords, isLoading, error } = useMissingWords(videoId);
+  const { recommendedWords, flaggedWords, isLoading, error } = useMissingWords(videoId);
+  const allWords = [...recommendedWords, ...flaggedWords];
   const { addWordsToUserwords } = useUpdateUserwords();
   const { seenVideos, markVideoAsSeen } = useSeenVideos(0);
 
@@ -40,22 +41,31 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
   const handleWordClick = useCallback((e: React.MouseEvent, word: MissingWord, index: number) => {
     if (e.shiftKey && selectedWords.length > 0) {
       e.preventDefault();
-      const lastSelectedIndex = missingWords.findIndex(w => w.id === selectedWords[selectedWords.length - 1]);
+      const lastSelectedIndex = allWords.findIndex(w => w.id === selectedWords[selectedWords.length - 1]);
       const [start, end] = [Math.min(index, lastSelectedIndex), Math.max(index, lastSelectedIndex)];
-      const newSelection = missingWords.slice(start, end + 1).map(w => w.id);
+      const newSelection = allWords.slice(start, end + 1).map(w => w.id);
       setSelectedWords(prev => Array.from(new Set([...prev, ...newSelection])));
     } else {
       toggleWordSelection(word.id);
     }
-  }, [missingWords, selectedWords, toggleWordSelection]);
+  }, [allWords, selectedWords, toggleWordSelection]);
 
-  const toggleAllWords = useCallback(() => {
-    setSelectedWords(prevSelectedWords =>
-      prevSelectedWords.length === missingWords.length
-        ? []
-        : missingWords.map(word => word.id)
+  const toggleWordGroup = useCallback((group: MissingWord[]) => {
+    const ids = group.map(w => w.id);
+    const allSelected = ids.every(id => selectedWords.includes(id));
+    setSelectedWords(prev =>
+      allSelected ? prev.filter(id => !ids.includes(id)) : Array.from(new Set([...prev, ...ids]))
     );
-  }, [missingWords]);
+  }, [selectedWords]);
+
+  const toggleRecommendedWords = useCallback(() => {
+    toggleWordGroup(recommendedWords);
+  }, [toggleWordGroup, recommendedWords]);
+
+  const toggleFlaggedWords = useCallback(() => {
+    toggleWordGroup(flaggedWords);
+  }, [toggleWordGroup, flaggedWords]);
+
 
   const addToLearningSet = useCallback(async () => {
     try {
@@ -115,16 +125,29 @@ const Wordpanel: React.FC<WordpanelProps> = ({ videoId, videoTitle, onClose }) =
       onClick={(e) => e.stopPropagation()}
     >
       <Header videoTitle={videoTitle} onClose={onClose} />
-      <SelectAllRow 
-        toggleAllWords={toggleAllWords} 
-        allSelected={selectedWords.length === missingWords.length}
-        totalWords={missingWords.length}
+      <SelectGroupRow
+        label="Select Recommended"
+        toggleGroup={toggleRecommendedWords}
+        allSelected={
+          recommendedWords.length > 0 &&
+          recommendedWords.every(w => selectedWords.includes(w.id))
+        }
+        count={recommendedWords.length}
       />
-      <WordList 
-        missingWords={missingWords} 
-        selectedWords={selectedWords} 
-        handleWordClick={handleWordClick} 
-        toggleWordSelection={toggleWordSelection} 
+      {flaggedWords.length > 0 && (
+        <SelectGroupRow
+          label="Select Flagged"
+          toggleGroup={toggleFlaggedWords}
+          allSelected={flaggedWords.every(w => selectedWords.includes(w.id))}
+          count={flaggedWords.length}
+        />
+      )}
+      <WordList
+        recommendedWords={recommendedWords}
+        flaggedWords={flaggedWords}
+        selectedWords={selectedWords}
+        handleWordClick={handleWordClick}
+        toggleWordSelection={toggleWordSelection}
       />
       <ToggleSeenButton 
         isVideoSeen={isVideoSeen}
@@ -148,18 +171,32 @@ const Header: React.FC<{ videoTitle: string; onClose: (addedWordsCount: number) 
 );
 
 const WordList: React.FC<{
-  missingWords: MissingWord[];
+  recommendedWords: MissingWord[];
+  flaggedWords: MissingWord[];
   selectedWords: number[];
   handleWordClick: (e: React.MouseEvent, word: MissingWord, index: number) => void;
   toggleWordSelection: (wordId: number) => void;
-}> = ({ missingWords, selectedWords, handleWordClick, toggleWordSelection }) => (
+}> = ({ recommendedWords, flaggedWords, selectedWords, handleWordClick, toggleWordSelection }) => (
   <div className="flex-1 overflow-y-auto p-4">
     <ul className="space-y-2">
-      {missingWords.map((word, index) => (
-        <WordItem 
+      {recommendedWords.map((word, index) => (
+        <WordItem
           key={word.id}
           word={word}
           index={index}
+          isSelected={selectedWords.includes(word.id)}
+          handleWordClick={handleWordClick}
+          toggleWordSelection={toggleWordSelection}
+        />
+      ))}
+      {flaggedWords.length > 0 && (
+        <li className="text-sm font-semibold mt-4">Flagged</li>
+      )}
+      {flaggedWords.map((word, index) => (
+        <WordItem
+          key={word.id}
+          word={word}
+          index={recommendedWords.length + index}
           isSelected={selectedWords.includes(word.id)}
           handleWordClick={handleWordClick}
           toggleWordSelection={toggleWordSelection}
@@ -231,7 +268,7 @@ const AddToLearningSetButton: React.FC<{
   addToLearningSet: () => void;
 }> = ({ selectedWordsCount, addToLearningSet }) => (
   <div className="p-4 border-t">
-    <button 
+    <button
       onClick={addToLearningSet}
       className={`w-full py-2 px-4 font-semibold rounded-md transition-colors duration-200 ${
         selectedWordsCount > 0
@@ -245,20 +282,21 @@ const AddToLearningSetButton: React.FC<{
   </div>
 );
 
-const SelectAllRow: React.FC<{
-  toggleAllWords: () => void;
+const SelectGroupRow: React.FC<{
+  label: string;
+  toggleGroup: () => void;
   allSelected: boolean;
-  totalWords: number;
-}> = ({ toggleAllWords, allSelected, totalWords }) => (
-  <div 
+  count: number;
+}> = ({ label, toggleGroup, allSelected, count }) => (
+  <div
     className="flex items-center justify-between px-4 py-2 border-b cursor-pointer bg-gray-50 hover:bg-gray-100 text-sm"
-    onClick={toggleAllWords}
+    onClick={toggleGroup}
   >
-    <span className="font-medium">Select All ({totalWords})</span>
-    <input 
+    <span className="font-medium">{label} ({count})</span>
+    <input
       type="checkbox"
       checked={allSelected}
-      onChange={toggleAllWords}
+      onChange={toggleGroup}
       className="form-checkbox h-4 w-4 text-blue-600"
       onClick={(e) => e.stopPropagation()}
     />
